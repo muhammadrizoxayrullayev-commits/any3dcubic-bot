@@ -1,0 +1,21 @@
+{
+  "name": "3dprinter-tashkent",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server/standalone.js",
+    "server": "node server/standalone.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "bot": "node server/standalone.js"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "canvas-confetti": "^1.9.4"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
