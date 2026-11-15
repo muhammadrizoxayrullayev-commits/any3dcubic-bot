@@ -27,21 +27,22 @@ class App {
     if (tgUser) {
       const uname = (tgUser.username || '').toLowerCase();
       if (tgUser.id === 8929216064 || uname === 'any3dcubicc') {
-        sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+        sessionStorage.setItem('any3d_admin_auth', '083010');
         return true;
       }
     }
 
-    // 2. URL parameter tekshiruvi (?admin=any3dcubicc)
+    // 2. URL parameter tekshiruvi (?pin=083010 yoki ?admin=083010)
     const params = new URLSearchParams(window.location.search);
-    const adminParam = (params.get('admin') || '').toLowerCase();
-    if (adminParam === 'any3dcubicc' || adminParam === 'any3d77' || adminParam === 'any3dcubic777') {
-      sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+    const pinParam = (params.get('pin') || params.get('admin') || '').trim();
+    if (pinParam === '083010' || pinParam.toLowerCase() === 'any3dcubicc') {
+      sessionStorage.setItem('any3d_admin_auth', '083010');
       return true;
     }
 
     // 3. Sessiyada saqlangan adminlik
-    if (sessionStorage.getItem('any3d_admin_auth') === 'any3DCubicc') {
+    const sessionAuth = sessionStorage.getItem('any3d_admin_auth');
+    if (sessionAuth === '083010' || sessionAuth === 'any3DCubicc') {
       return true;
     }
 
@@ -239,11 +240,12 @@ class App {
 
           <form class="auth-pin-form" id="admin-pin-form" onsubmit="return false;">
             <div class="auth-input-group">
-              <input type="password" id="admin-pin-input" placeholder="Admin PIN kodi (masalan: any3dcubicc)" autocomplete="current-password">
+              <input type="password" id="admin-pin-input" placeholder="6 xonali PIN kod" inputmode="numeric" maxlength="10" autocomplete="current-password" autofocus>
+              <button type="button" class="btn-toggle-pin-peek" id="btn-toggle-pin-peek" title="PIN kodni ko‘rsatish/yashirish" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 0 0.85rem; border-radius: 8px; cursor: pointer; font-size: 0.95rem;">👁️</button>
               <button type="submit" class="btn-submit-pin" id="btn-submit-pin">🔓 Kirish</button>
             </div>
             <div class="auth-error-msg" id="admin-auth-error" style="display: none;">
-              🚫 Noto‘g‘ri PIN! Kirish faqat @any3DCubicc uchun ruxsat etilgan.
+              🚫 Noto‘g‘ri PIN-kod! Iltimos, to‘g‘ri 6 xonali kodni kiriting.
             </div>
           </form>
 
@@ -378,9 +380,9 @@ class App {
 
     if (pinForm && pinInput) {
       pinForm.addEventListener('submit', () => {
-        const val = pinInput.value.trim().toLowerCase();
-        if (val === 'any3dcubicc' || val === 'any3d77' || val === 'any3dcubic777') {
-          sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+        const val = pinInput.value.trim().replace(/\s+/g, '');
+        if (val === '083010' || val.toLowerCase() === 'any3dcubicc') {
+          sessionStorage.setItem('any3d_admin_auth', '083010');
           this.isAdmin = true;
           if (authModal) authModal.style.display = 'none';
           this.currentView = 'admin';
@@ -390,8 +392,24 @@ class App {
         } else {
           if (pinError) {
             pinError.style.display = 'block';
-            pinError.textContent = '🚫 Noto‘g‘ri PIN! Kirish faqat @any3DCubicc uchun ruxsat etilgan.';
+            pinError.textContent = '🚫 Noto‘g‘ri PIN-kod! Iltimos, to‘g‘ri 6 xonali kodni kiriting.';
           }
+          pinInput.focus();
+          pinInput.select();
+        }
+      });
+    }
+
+    // PIN ko'zchasi (Show/Hide PIN)
+    const btnPeek = this.appContainer.querySelector('#btn-toggle-pin-peek');
+    if (btnPeek && pinInput) {
+      btnPeek.addEventListener('click', () => {
+        if (pinInput.type === 'password') {
+          pinInput.type = 'text';
+          btnPeek.textContent = '🙈';
+        } else {
+          pinInput.type = 'password';
+          btnPeek.textContent = '👁️';
         }
       });
     }
