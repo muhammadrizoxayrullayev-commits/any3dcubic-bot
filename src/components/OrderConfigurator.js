@@ -635,6 +635,10 @@ export class OrderConfigurator {
                   <b>Soxta (fake) to‘lovlarning oldini olish</b> maqsadida har bir chek xodimlarimiz tomonidan bank hisobimiz orqali tekshiriladi.
                 </p>
 
+                <div class="verifying-tip-box" style="margin: 10px 0; padding: 10px 12px; background: rgba(255, 170, 0, 0.08); border: 1px dashed rgba(255, 170, 0, 0.4); border-radius: 8px; font-size: 12.5px; color: #fbbf24; text-align: left;">
+                  ℹ️ Shuningdek, Telegram botimizda (<a href="https://t.me/Any3dCubic_bot" target="_blank" style="color: #fbbf24; font-weight: bold; text-decoration: underline;">@Any3dCubic_bot</a>) buyurtmangiz raqamini yozib, holatni tekshirib turishingiz mumkin.
+                </div>
+
                 <div class="verification-steps-card">
                   <div class="vstep completed">
                     <div class="vstep-icon">✅</div>
@@ -693,6 +697,10 @@ export class OrderConfigurator {
                     <strong>Buyurtmangizni botda LIVE (jonli) ko‘ra olasiz!</strong>
                     <span>Dastgoh harorati, chop etish tezligi va tayyor bo‘lish vaqti real vaqtda yangilanadi.</span>
                   </div>
+                </div>
+
+                <div class="order-telegram-tip-box" id="success-tg-tip" style="margin: 14px 0 16px; padding: 12px 14px; background: rgba(0, 240, 255, 0.08); border: 1px dashed rgba(0, 240, 255, 0.4); border-radius: 10px; text-align: left; font-size: 13px; color: #e2e8f0; line-height: 1.5;">
+                  💡 <b>Mijozlar uchun qulaylik:</b> Telegram botimizda (<a href="https://t.me/Any3dCubic_bot" target="_blank" style="color: #00f0ff; font-weight: bold;">@Any3dCubic_bot</a>) shunchaki buyurtma raqamingizni (masalan: <b id="tip-order-digits" style="color: #00f0ff;">5452</b>) yuborsangiz, bot sizga to‘lov chekingiz, buyurtma kartangiz va tayyorlanish jarayonini bir zumda chiqarib beradi!
                 </div>
 
                 <div class="success-btn-group">
@@ -1164,6 +1172,17 @@ ${orderData.orderNotes ? `\n📝 <b>Izoh:</b> <i>"${orderData.orderNotes}"</i>\n
           if (declinedScreen) declinedScreen.style.display = 'none';
           if (successOrderNum) successOrderNum.textContent = orderIdVal;
           if (successScreen) successScreen.style.display = 'block';
+
+          // Telegram bot linkiga aniq buyurtma raqamini biriktirish
+          const orderDigits = orderIdVal.replace(/\D/g, '');
+          const gotoBotBtn = this.mount.querySelector('#btn-goto-bot');
+          if (gotoBotBtn) {
+            gotoBotBtn.href = `https://t.me/Any3dCubic_bot?start=${orderDigits || 'live'}`;
+          }
+          const tipDigits = this.mount.querySelector('#tip-order-digits');
+          if (tipDigits) {
+            tipDigits.textContent = orderDigits || '5452';
+          }
 
           confetti({
             particleCount: 140,

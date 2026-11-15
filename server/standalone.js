@@ -147,6 +147,8 @@ const server = http.createServer(async (req, res) => {
     }
     return sendJSON(res, 200, {
       ok: true,
+      found: true,
+      order,
       orderId: order.orderId,
       status: order.status || 'pending',
       reviewedBy: order.reviewedBy || null,

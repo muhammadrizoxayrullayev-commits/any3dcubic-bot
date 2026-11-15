@@ -141,15 +141,57 @@ export function getOrders() {
   }
 }
 
+const RECEIPTS_DIR = path.join(DATA_DIR, 'receipts');
+if (!fs.existsSync(RECEIPTS_DIR)) {
+  fs.mkdirSync(RECEIPTS_DIR, { recursive: true });
+}
+
 export function getOrderById(orderId) {
+  if (!orderId) return null;
   const orders = getOrders();
-  return orders.find(o => o.orderId === orderId) || null;
+  const rawQuery = String(orderId).trim();
+  const cleanQuery = rawQuery.toLowerCase();
+  const queryDigits = cleanQuery.replace(/\D/g, ''); // masalan "5452"
+
+  // 1. Aniq orderId bo'yicha moslik
+  let found = orders.find(o => o.orderId && o.orderId.toLowerCase() === cleanQuery);
+  if (found) return found;
+
+  // 2. Raqamlar bo'yicha moslik (masalan "5452" kelsa "#T3D-UZ-5452" yoki "pm5452" ni topadi)
+  if (queryDigits.length >= 3) {
+    found = orders.find(o => {
+      if (!o.orderId) return false;
+      const idDigits = String(o.orderId).replace(/\D/g, '');
+      return idDigits === queryDigits || idDigits.endsWith(queryDigits) || idDigits.includes(queryDigits);
+    });
+    if (found) return found;
+  }
+
+  // 3. Qisman matn mosligi
+  found = orders.find(o => o.orderId && o.orderId.toLowerCase().includes(cleanQuery));
+  if (found) return found;
+
+  // 4. Mijoz telefon raqami orqali qidirish
+  if (queryDigits.length >= 7) {
+    found = orders.find(o => {
+      if (!o.customerPhone) return false;
+      const phoneDigits = String(o.customerPhone).replace(/\D/g, '');
+      return phoneDigits.includes(queryDigits);
+    });
+    if (found) return found;
+  }
+
+  return null;
 }
 
 export function updateOrderStatus(orderId, status, extraData = {}) {
   try {
     const orders = getOrders();
-    const idx = orders.findIndex(o => o.orderId === orderId);
+    // Mos buyurtmani qidirish
+    const targetOrder = getOrderById(orderId);
+    if (!targetOrder) return null;
+
+    const idx = orders.findIndex(o => o.orderId === targetOrder.orderId);
     if (idx !== -1) {
       orders[idx] = {
         ...orders[idx],
@@ -170,6 +212,22 @@ function saveOrder(order) {
   try {
     const orders = getOrders();
     const existingIdx = orders.findIndex(o => o.orderId === order.orderId);
+
+    // Agar chek base64 bo'lsa, uni alohida rasm fayliga ham saqlash
+    if (order.receiptImage && order.receiptImage.startsWith('data:image')) {
+      try {
+        const safeName = String(order.orderId).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filePath = path.join(RECEIPTS_DIR, `${safeName}.jpg`);
+        const parts = order.receiptImage.split(';base64,');
+        if (parts.length >= 2) {
+          fs.writeFileSync(filePath, Buffer.from(parts[1], 'base64'));
+          order.receiptPath = filePath;
+        }
+      } catch (imgErr) {
+        console.warn('Chek rasmini saqlashda ogohlantirish:', imgErr.message);
+      }
+    }
+
     if (existingIdx !== -1) {
       orders[existingIdx] = { ...orders[existingIdx], ...order };
     } else {
@@ -207,22 +265,50 @@ export async function sendTelegramMessage(chatId, text, extra = {}) {
   }
 }
 
-export async function sendTelegramPhoto(chatId, base64Data, caption, extra = {}) {
-  if (!BOT_TOKEN) return false;
+export async function sendTelegramPhoto(chatId, photoSource, caption, extra = {}) {
+  if (!BOT_TOKEN || !photoSource) return false;
   try {
-    const parts = base64Data.split(';base64,');
-    if (parts.length < 2) return false;
-    const mime = parts[0].replace('data:', '') || 'image/jpeg';
-    const buffer = Buffer.from(parts[1], 'base64');
-    const blob = new Blob([buffer], { type: mime });
     const formData = new FormData();
     formData.append('chat_id', chatId);
-    formData.append('photo', blob, 'chek.jpg');
-    formData.append('caption', caption);
+    formData.append('caption', caption || '');
     formData.append('parse_mode', 'HTML');
     if (extra.reply_markup) {
       formData.append('reply_markup', JSON.stringify(extra.reply_markup));
     }
+
+    if (typeof photoSource === 'string') {
+      // 1. Agar Base64 formatida bo'lsa
+      if (photoSource.startsWith('data:image')) {
+        const parts = photoSource.split(';base64,');
+        if (parts.length >= 2) {
+          const mime = parts[0].replace('data:', '') || 'image/jpeg';
+          const buffer = Buffer.from(parts[1], 'base64');
+          const blob = new Blob([buffer], { type: mime });
+          formData.append('photo', blob, 'chek.jpg');
+        } else {
+          return false;
+        }
+      }
+      // 2. Agar diskdagi lokal rasm fayli bo'lsa
+      else if (fs.existsSync(photoSource)) {
+        const fileBuffer = fs.readFileSync(photoSource);
+        const blob = new Blob([fileBuffer], { type: 'image/jpeg' });
+        formData.append('photo', blob, path.basename(photoSource));
+      }
+      // 3. Agar Telegram file_id bo'lsa
+      else if (!photoSource.includes('/') && photoSource.length > 20) {
+        formData.append('photo', photoSource);
+      }
+      // 4. URL bo'lsa
+      else if (photoSource.startsWith('http')) {
+        formData.append('photo', photoSource);
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+
     const res = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
       method: 'POST',
       body: formData
@@ -232,6 +318,78 @@ export async function sendTelegramPhoto(chatId, base64Data, caption, extra = {})
   } catch (err) {
     console.error('sendTelegramPhoto xatosi:', err.message);
     return false;
+  }
+}
+
+export async function sendOrderDetailsToUser(chatId, order, isExclusiveAdmin, keyboard = {}) {
+  const cleanPhone = (order.customerPhone || '').replace(/[^0-9+]/g, '');
+  const tgNick = order.customerTelegram 
+    ? (order.customerTelegram.startsWith('@') ? order.customerTelegram : '@' + order.customerTelegram) 
+    : 'Kiritilmagan';
+
+  let statusBadge = '🟡 <b>ADMIN TASDIG‘I KUTILMOQDA</b> (Bank hisobi tekshirilmoqda)';
+  if (order.status === 'approved') {
+    statusBadge = '🟢 <b>TASDIQLANGAN VA QABUL QILINDI</b> (3D bosma jarayonida)';
+  } else if (order.status === 'declined') {
+    statusBadge = '❌ <b>RAD ETILGAN</b> (To‘lov cheki noto‘g‘ri yoki soxta)';
+  }
+
+  const orderCardText = `
+📦 <b>BUYURTMA MA'LUMOTLARI: ${order.orderId}</b>
+
+🆔 <b>Buyurtma ID:</b> <code>${order.orderId}</code>
+👤 <b>Mijoz:</b> ${order.customerName || 'Noma\'lum'}
+📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${order.customerPhone || 'Kiritilmagan'}</a>
+💬 <b>Telegram nick:</b> ${tgNick !== 'Kiritilmagan' ? `<a href="https://t.me/${tgNick.replace('@', '')}">${tgNick}</a>` : '<i>Kiritilmagan</i>'}
+
+📋 <b>Mahsulot / Detal:</b> ${order.orderTypeTitle || '3D Detal'}
+🧵 <b>Material:</b> ${order.material || 'Standart PLA'}
+🔢 <b>Soni:</b> ${order.quantity || 1} dona
+💰 <b>Jami summa:</b> <b>${order.grandTotal || '0 so‘m'}</b>
+🚚 <b>Yetkazish:</b> ${order.deliveryMethodTitle || order.deliveryMethod || 'Ustaxonadan olib ketish'}
+${order.deliveryAddress ? `📍 <b>Manzil:</b> ${order.deliveryAddress}\n` : ''}${order.orderNotes ? `📝 <b>Izoh:</b> <i>"${order.orderNotes}"</i>\n` : ''}
+⏱️ <b>Holat:</b> ${statusBadge}
+📅 <b>Vaqt:</b> ${order.createdAt ? new Date(order.createdAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' }) : 'Bugun'}
+${order.reviewedBy ? `👨‍💼 <b>Tekshiruvchi:</b> ${order.reviewedBy}\n` : ''}
+${(order.receiptImage || order.receiptPath) ? '🧾 <b>To‘lov cheki:</b> Rasm quyida ilova qilindi 👇' : '⚠️ <b>To‘lov cheki:</b> Chek yuklanmagan (kuryerga / joyida to‘lov)'}
+  `.trim();
+
+  // Boshqaruv klaviaturasi
+  let inlineMarkup = null;
+  if (isExclusiveAdmin) {
+    inlineMarkup = {
+      inline_keyboard: [
+        [
+          { text: '✅ Qabul qilish (Approve)', callback_data: `approve_${order.orderId}` },
+          { text: '❌ Rad etish (Decline)', callback_data: `decline_${order.orderId}` }
+        ],
+        [
+          { text: '📞 Qo‘ng‘iroq', url: `tel:${cleanPhone}` },
+          { text: '💬 Telegram', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+        ]
+      ]
+    };
+  } else {
+    inlineMarkup = {
+      inline_keyboard: [
+        [
+          { text: '📡 Dastgoh Jonli Telemetriyasi (LIVE)', callback_data: 'live' }
+        ],
+        [
+          { text: '💬 Administrator (@any3DCubicc)', url: 'https://t.me/any3DCubicc' }
+        ]
+      ]
+    };
+  }
+
+  const receiptSource = order.receiptImage || order.receiptPath;
+  let photoSent = false;
+  if (receiptSource) {
+    photoSent = await sendTelegramPhoto(chatId, receiptSource, orderCardText, { reply_markup: inlineMarkup });
+  }
+
+  if (!photoSent) {
+    await sendTelegramMessage(chatId, orderCardText, { reply_markup: inlineMarkup });
   }
 }
 
@@ -494,7 +652,7 @@ Dastgoh harorati va tayyor bo‘lish vaqtini ko‘rish uchun /live buyrug‘ini 
 Hurmatli mijoz, siz yuklagan to‘lov cheki administratorlarimiz tomonidan rad etildi (to‘lov bank hisobimizga kelib tushmadi yoki chek yaroqsiz deb topildi).
 
 Iltimos, qayta to‘lov qilib to‘g‘ri chekni yuklang yoki ustaxona ma'muri bilan bog‘laning:
-📞 Admin: @khayru1ayev
+📞 Admin: @any3DCubicc
         `.trim();
         await sendTelegramMessage(custChatId, custMsg);
       }
@@ -502,7 +660,7 @@ Iltimos, qayta to‘lov qilib to‘g‘ri chekni yuklang yoki ustaxona ma'muri b
   }
 }
 
-async function handleUpdate(update) {
+export async function handleUpdate(update) {
   if (update.callback_query) {
     await handleCallbackQuery(update.callback_query);
     return;
@@ -637,7 +795,78 @@ Dastgoh harorati va navbatni real vaqtda ko‘rish uchun <b>"📡 Jonli Telemetr
     }
   }
 
-  // 3. Jonli Telemetriya (LIVE) holati
+  // 3. BUYURTMA RAQAMI ORQALI TEZKOR QIDIRUV (Masalan: "5452", "pm5452", "#T3D-UZ-5452")
+  // Foydalanuvchi /start bosmasdan yoki alohida xabarda raqamni o'zini yozsa ham cheki va mahsulotini ko'rsatish
+  const cleanDigits = text.replace(/\D/g, '');
+  const looksLikeOrderQuery = cleanDigits.length >= 3 || 
+                              text.toLowerCase().includes('t3d') || 
+                              text.toLowerCase().includes('pm') || 
+                              text.startsWith('#') ||
+                              text.toLowerCase().startsWith('buyurtma') ||
+                              text.toLowerCase().startsWith('/track') ||
+                              text.toLowerCase().startsWith('/order');
+
+  const isBuiltinNavCommand = [
+    '🌐 saytni ochish', '/site', '🛒 3d bosmaga buyurtma berish',
+    '📡 jonli telemetriya (live)', '📡 dastgoh telemetriyasi (live)',
+    '📍 ustaxona lokatsiyasi', '💬 bosh administrator (@any3dcubicc)',
+    '💬 administrator (@any3dcubicc)', '📦 barcha buyurtmalar', '📦 oxirgi buyurtmalar',
+    '📦 buyurtmamni kuzatish', '/track', 'buyurtmamni kuzatish',
+    '📊 statistika', '📊 tizim holati (/status)', 'ℹ️ yordam'
+  ].includes(text.toLowerCase());
+
+  if (!isBuiltinNavCommand && !text.startsWith('/start') && looksLikeOrderQuery) {
+    const matchedOrder = getOrderById(cleanDigits) || getOrderById(text);
+    if (matchedOrder) {
+      await sendOrderDetailsToUser(chatId, matchedOrder, isExclusiveAdmin, activeKeyboard);
+      return;
+    } else if (cleanDigits.length >= 3 && cleanDigits.length <= 8 && text.length <= 30) {
+      await sendTelegramMessage(chatId, `🔍 <b>Buyurtma topilmadi:</b> <code>#${cleanDigits}</code>\n\nIltimos, raqamni to‘g‘ri kiritganingizni tekshiring yoki saytdan yangi buyurtma bering: ${WEB_APP_URL}`, { reply_markup: activeKeyboard });
+      return;
+    }
+  }
+
+  // /start 5452 yoki /start pm5452 kabi deep-link bo'lsa
+  if (text.startsWith('/start ') && text.length > 7 && !text.includes('live') && !text.includes('admin')) {
+    const param = text.replace('/start', '').trim();
+    const cleanParamDigits = param.replace(/\D/g, '');
+    const matchedOrder = getOrderById(param) || (cleanParamDigits.length >= 3 ? getOrderById(cleanParamDigits) : null);
+    if (matchedOrder) {
+      await sendOrderDetailsToUser(chatId, matchedOrder, isExclusiveAdmin, activeKeyboard);
+      return;
+    } else {
+      await sendTelegramMessage(chatId, `🔍 <b>Buyurtma topilmadi:</b> <code>#${param}</code>\n\nIltimos, raqamni to‘g‘ri kiritganingizni tekshiring yoki saytdan yangi buyurtma bering: ${WEB_APP_URL}`, { reply_markup: activeKeyboard });
+      return;
+    }
+  }
+
+  // 4. Mijoz o'z buyurtmasini kuzatish tugmasini bossa
+  if (text === '📦 Buyurtmamni Kuzatish' || text.toLowerCase() === 'buyurtmamni kuzatish' || text === '/track') {
+    const orders = getOrders();
+    const userOrders = orders.filter(o => {
+      if (callerUsername && o.customerTelegram && o.customerTelegram.toLowerCase().includes(callerUsername)) return true;
+      return false;
+    });
+
+    if (userOrders.length > 0) {
+      const latest = userOrders[0];
+      await sendTelegramMessage(chatId, `🔍 <b>Sizning oxirgi buyurtmangiz ma'lumotlari:</b>`, { reply_markup: activeKeyboard });
+      await sendOrderDetailsToUser(chatId, latest, isExclusiveAdmin, activeKeyboard);
+      return;
+    }
+
+    const trackPrompt = `
+📦 <b>Buyurtmangizni kuzatish:</b>
+
+Iltimos, buyurtma raqamingizni yozib yuboring (masalan: <code>5452</code> yoki <code>#T3D-UZ-5452</code>).
+
+Bot sizga to‘lov cheki, mahsulot tafsilotlari, narxi va tayyorlanish jarayonini bir zumda chiqarib beradi! 🚀
+    `.trim();
+    await sendTelegramMessage(chatId, trackPrompt, { reply_markup: activeKeyboard });
+    return;
+  }
+
+  // 4. Jonli Telemetriya (LIVE) holati
   if (text.startsWith('/start live') || text === '/live' || text === '📡 Jonli Telemetriya (LIVE)' || text === '📡 Dastgoh Telemetriyasi (LIVE)') {
     const orders = getOrders();
     const latest = orders[0] || null;
@@ -748,7 +977,9 @@ Buyurtmalarni tasdiqlash (Approve) yoki rad etish (Decline) vakolati faqat sizga
 <b>Toshkent 3D Ustaxonasi</b> (@Any3dCubic_bot) ga xush kelibsiz!
 Bizda istalgan murakkablikdagi shesterna, avtomobil ehtiyot qismlari, muhandislik korpuslari hamda arxitektura maketlarini tezkor 3D bosmaga buyurtma berishingiz mumkin.
 
-👇 <b>Buyurtma berish uchun pastdagi tugmani bosing:</b>
+💡 <b>Buyurtmangiz bormi?</b> Shunchaki buyurtma raqamingizni (masalan: <code>5452</code> yoki <code>#T3D-UZ-5452</code>) yozib yuboring, bot to‘lov chekingiz, mahsulot va tayyorlanish jarayonini darhol ko‘rsatadi!
+
+👇 <b>Yangi buyurtma berish uchun pastdagi tugmani bosing:</b>
       `.trim();
 
       const customerInline = {

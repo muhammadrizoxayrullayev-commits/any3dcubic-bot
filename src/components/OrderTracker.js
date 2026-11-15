@@ -313,10 +313,33 @@ export class OrderTracker {
     const btnLookup = this.mount.querySelector('#btn-lookup');
     const inputId = this.mount.querySelector('#track-id-input');
     if (btnLookup && inputId) {
-      btnLookup.addEventListener('click', () => {
+      btnLookup.addEventListener('click', async () => {
         const id = inputId.value.trim();
         if (id) {
-          this.currentOrder.orderId = id;
+          btnLookup.textContent = 'Tekshirilmoqda...';
+          try {
+            const res = await fetch(`/api/order-status?id=${encodeURIComponent(id)}`);
+            const data = await res.json();
+            if (data.ok && data.order) {
+              this.currentOrder = data.order;
+            } else {
+              // LocalStorage fallback
+              const localOrders = JSON.parse(localStorage.getItem('cached_admin_orders') || '[]');
+              const cleanDigits = id.replace(/\D/g, '');
+              const foundLocal = localOrders.find(o => {
+                if (!o.orderId) return false;
+                const oDigits = o.orderId.replace(/\D/g, '');
+                return o.orderId.toLowerCase() === id.toLowerCase() || (cleanDigits && oDigits.includes(cleanDigits));
+              });
+              if (foundLocal) {
+                this.currentOrder = foundLocal;
+              } else {
+                this.currentOrder.orderId = id.startsWith('#') ? id : `#T3D-UZ-${id}`;
+              }
+            }
+          } catch (e) {
+            this.currentOrder.orderId = id.startsWith('#') ? id : `#T3D-UZ-${id}`;
+          }
           this.render();
           this.fetchMessages();
         }
