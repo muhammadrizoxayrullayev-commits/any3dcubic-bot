@@ -14,16 +14,25 @@ export default defineConfig({
   base: './',
   server: {
     host: true,
-    port: 5173
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
   },
   plugins: [
     {
       name: 'telegram-bot-integration',
       configureServer(server) {
-        // Start Telegram bot long-polling in background
-        startBotPolling();
+        // Standalone daemon port 3000 da ishlamayotgan bo'lsagina pollingni boshlash
+        fetch('http://localhost:3000/health').catch(() => {
+          console.log('Standalone server topilmadi, Vite ichida polling yoqilmoqda...');
+          startBotPolling();
+        });
 
-        // Custom API Middleware
+        // Custom API Middleware (Zaxira uchun)
         server.middlewares.use(async (req, res, next) => {
           if (req.url === '/api/submit-order' && req.method === 'POST') {
             let body = '';
