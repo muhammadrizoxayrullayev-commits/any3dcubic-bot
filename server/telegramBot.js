@@ -32,6 +32,8 @@ loadEnv();
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
+export const EXCLUSIVE_ADMIN_CHAT_ID = Number(process.env.EXCLUSIVE_ADMIN_CHAT_ID) || 8929216064;
+export const EXCLUSIVE_ADMIN_USERNAME = (process.env.EXCLUSIVE_ADMIN_USERNAME || 'any3DCubicc').replace('@', '');
 const DATA_DIR = path.join(projectRoot, 'data');
 const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
@@ -234,23 +236,20 @@ export async function sendTelegramPhoto(chatId, base64Data, caption, extra = {})
 }
 
 export async function broadcastToAdmins(messageText, extra = {}, photoBase64 = null) {
-  const subs = getSubscribers();
-  if (subs.length === 0) {
-    console.log('Hozircha hech qanday admin botga ulanmagan. Iltimos botga /start bosing.');
-    return 0;
-  }
-  let sentCount = 0;
-  for (const sub of subs) {
-    let success = false;
+  // Buyurtmalar va administrator ogohlantirishlari FAQAT bosh administrator @any3DCubicc ga boradi
+  const targetId = EXCLUSIVE_ADMIN_CHAT_ID;
+  let success = false;
+  try {
     if (photoBase64) {
-      success = await sendTelegramPhoto(sub.chatId, photoBase64, messageText, extra);
+      success = await sendTelegramPhoto(targetId, photoBase64, messageText, extra);
     }
     if (!success) {
-      success = await sendTelegramMessage(sub.chatId, messageText, extra);
+      success = await sendTelegramMessage(targetId, messageText, extra);
     }
-    if (success) sentCount++;
+  } catch (err) {
+    console.error('broadcastToAdmins xatosi:', err.message);
   }
-  return sentCount;
+  return success ? 1 : 0;
 }
 
 export async function notifyNewOrder(orderData) {
@@ -372,6 +371,23 @@ async function handleCallbackQuery(cq) {
   }
 
   if (isApprove || isDecline) {
+    const callerId = cq.from.id;
+    const callerUsername = (cq.from.username || '').toLowerCase();
+    const isExclusiveAdmin = (callerId === EXCLUSIVE_ADMIN_CHAT_ID) || (callerUsername === EXCLUSIVE_ADMIN_USERNAME.toLowerCase());
+
+    if (!isExclusiveAdmin) {
+      await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          callback_query_id: cq.id,
+          text: '🚫 Ruxsat yo‘q! Faqat bosh administrator (@any3DCubicc) buyurtmalarni tasdiqlash yoki rad etish huquqiga ega.',
+          show_alert: true
+        })
+      }).catch(() => {});
+      return;
+    }
+
     const newStatus = isApprove ? 'approved' : 'declined';
     const updatedOrder = updateOrderStatus(orderId, newStatus, {
       reviewedBy: adminName,
@@ -497,78 +513,105 @@ async function handleUpdate(update) {
   const text = (msg.text || '').trim();
   const userName = msg.from.first_name || msg.from.username || 'Foydalanuvchi';
 
-  // Add to subscribers list
+  const callerId = msg.chat.id;
+  const callerUsername = (msg.from.username || '').toLowerCase();
+  const isExclusiveAdmin = (callerId === EXCLUSIVE_ADMIN_CHAT_ID) || (callerUsername === EXCLUSIVE_ADMIN_USERNAME.toLowerCase());
+
+  // Faqat @any3DCubicc ni adminlar ro'yxatiga qo'shish
   const subs = getSubscribers();
-  if (!subs.some(s => s.chatId === chatId)) {
+  if (isExclusiveAdmin && !subs.some(s => s.chatId === EXCLUSIVE_ADMIN_CHAT_ID)) {
     subs.push({
-      chatId,
-      username: msg.from.username || null,
-      firstName: msg.from.first_name || null,
+      chatId: EXCLUSIVE_ADMIN_CHAT_ID,
+      username: 'any3DCubicc',
+      firstName: 'Any3DCubic',
+      role: 'owner_admin',
       addedAt: new Date().toISOString()
     });
     saveSubscribers(subs);
-    console.log(`✅ Yangi admin ulandi: ${userName} (Chat ID: ${chatId})`);
   }
 
-const WEB_APP_URL = 'https://muhammadrizoxayrullayev-commits.github.io/t3d/';
+  const WEB_APP_URL = 'https://muhammadrizoxayrullayev-commits.github.io/t3d/';
 
-const mainMenuKeyboard = {
-  keyboard: [
-    [
-      { text: '🌐 Saytni ochish', web_app: { url: WEB_APP_URL } }
+  // 1. Boshqaruvchi Admin (@any3DCubicc) uchun maxsus klaviatura
+  const adminMenuKeyboard = {
+    keyboard: [
+      [
+        { text: '🛡️ Admin CRM & Chat', web_app: { url: `${WEB_APP_URL}?admin=any3dcubicc` } }
+      ],
+      [
+        { text: '📦 Barcha buyurtmalar' },
+        { text: '📊 Tizim holati (/status)' }
+      ],
+      [
+        { text: '📡 Dastgoh Telemetriyasi (LIVE)' },
+        { text: 'ℹ️ Yordam' }
+      ]
     ],
-    [
-      { text: '📡 Jonli Telemetriya (LIVE)' },
-      { text: '📦 Oxirgi buyurtmalar' }
+    resize_keyboard: true
+  };
+
+  // 2. Oddiy mijozlar uchun qulay menyu
+  const customerMenuKeyboard = {
+    keyboard: [
+      [
+        { text: '🛒 3D Bosmaga Buyurtma Berish', web_app: { url: WEB_APP_URL } }
+      ],
+      [
+        { text: '📦 Buyurtmamni Kuzatish' },
+        { text: '📍 Ustaxona Lokatsiyasi' }
+      ],
+      [
+        { text: '📡 Jonli Telemetriya (LIVE)' },
+        { text: '💬 Bosh Administrator (@any3DCubicc)' }
+      ]
     ],
-    [
-      { text: '📊 Statistika' },
-      { text: 'ℹ️ Yordam' }
-    ]
-  ],
-  resize_keyboard: true
-};
+    resize_keyboard: true
+  };
+
+  const activeKeyboard = isExclusiveAdmin ? adminMenuKeyboard : customerMenuKeyboard;
 
   // 1. Agar foydalanuvchi to'lov cheki rasmini yuklasa
   if (msg.photo && msg.photo.length > 0) {
     const photoId = msg.photo[msg.photo.length - 1].file_id;
     const captionNote = msg.caption ? `\n💬 <b>Izoh:</b> ${msg.caption}` : '';
     const adminNotice = `
-🧾 <b>MIJOZ TO‘LOV CHEKI RASMINI YUKLADI!</b>
+🧾 <b>MIJOZDAN TO‘LOV CHEKI KELDI!</b>
 
 👤 <b>Mijoz:</b> ${userName}
 🆔 <b>Chat ID:</b> <code>${chatId}</code>${captionNote}
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
 
-⚡ <i>Iltimos, bank ilovangiz orqali summani tekshiring.</i>
+⚡ <i>Iltimos, bank hisobingizga pul tushganini tekshirib tasdiqlang yoki rad eting:</i>
     `.trim();
 
-    // Boshqa barcha adminlarga rasmni yuborish
-    for (const sub of subs) {
-      if (sub.chatId !== chatId) {
-        await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: sub.chatId,
-            photo: photoId,
-            caption: adminNotice,
-            parse_mode: 'HTML'
-          })
-        }).catch(() => {});
-      }
-    }
+    // Rasm va tasdiqlash tugmalari FAQAT @any3DCubicc ga boradi
+    await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: EXCLUSIVE_ADMIN_CHAT_ID,
+        photo: photoId,
+        caption: adminNotice,
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '✅ Tasdiqlash (Qabul qilish)', callback_data: `approve_PHOTO_${Date.now()}` },
+              { text: '❌ Rad etish (Fake)', callback_data: `decline_PHOTO_${Date.now()}` }
+            ]
+          ]
+        }
+      })
+    }).catch(() => {});
 
     const userSuccess = `
-🎉 <b>Buyurtmangiz qabul qilindi!</b>
+🎉 <b>To‘lov chekingiz qabul qilindi!</b>
 
-📸 To‘lov cheki rasmingiz Toshkent 3D Ustaxonamizga muvaffaqiyatli yetkazildi!
-
-📡 <b>Buyurtmangizni botda LIVE (jonli) ko‘ra olasiz!</b>
-Dastgoh harorati va chop etish jarayonini jonli ko‘rish uchun pastdagi <b>"📡 Jonli Telemetriya (LIVE)"</b> tugmasini bosing yoki /live buyrug‘ini yuboring.
+📸 Chek rasmi Toshkent 3D Ustaxonasi bosh administratori (@any3DCubicc) ga tekshirish uchun yetkazildi.
+Admin chekni tasdiqlagan zahoti buyurtmangiz navbatga qo‘yiladi!
     `.trim();
 
-    await sendTelegramMessage(chatId, userSuccess, { reply_markup: mainMenuKeyboard });
+    await sendTelegramMessage(chatId, userSuccess, { reply_markup: activeKeyboard });
     return;
   }
 
@@ -585,9 +628,9 @@ Dastgoh harorati va chop etish jarayonini jonli ko‘rish uchun pastdagi <b>"�
 💰 <b>Summa:</b> <b>${orderData.grandTotal || 'Kelishiladi'}</b>
 ${orderData.hasReceipt ? '🧾 <b>To‘lov cheki:</b> Ilova qilindi ✅\n' : ''}
 📡 <b>Buyurtmangizni botda LIVE (jonli) ko‘ra olasiz!</b>
-Dastgoh harorati, chop etish tezligi va navbatni real vaqtda ko‘rish uchun <b>"📡 Jonli Telemetriya (LIVE)"</b> tugmasini bosing.
+Dastgoh harorati va navbatni real vaqtda ko‘rish uchun <b>"📡 Jonli Telemetriya (LIVE)"</b> tugmasini bosing.
       `.trim();
-      await sendTelegramMessage(chatId, appSuccess, { reply_markup: mainMenuKeyboard });
+      await sendTelegramMessage(chatId, appSuccess, { reply_markup: activeKeyboard });
       return;
     } catch (e) {
       console.error('web_app_data error:', e);
@@ -595,7 +638,7 @@ Dastgoh harorati, chop etish tezligi va navbatni real vaqtda ko‘rish uchun <b>
   }
 
   // 3. Jonli Telemetriya (LIVE) holati
-  if (text.startsWith('/start live') || text === '/live' || text === '📡 Jonli Telemetriya (LIVE)') {
+  if (text.startsWith('/start live') || text === '/live' || text === '📡 Jonli Telemetriya (LIVE)' || text === '📡 Dastgoh Telemetriyasi (LIVE)') {
     const orders = getOrders();
     const latest = orders[0] || null;
     const orderId = latest ? latest.orderId : '#T3D-UZ-8492';
@@ -621,27 +664,50 @@ Dastgoh harorati, chop etish tezligi va navbatni real vaqtda ko‘rish uchun <b>
 🚚 <i>Tayyor bo‘lgach kuryer jo‘natiladi yoki ustaxonadan olib ketishingiz mumkin!</i>
     `.trim();
 
-    await sendTelegramMessage(chatId, liveMsg, { reply_markup: mainMenuKeyboard });
+    await sendTelegramMessage(chatId, liveMsg, { reply_markup: activeKeyboard });
     return;
   }
 
-  if (text === '🌐 Saytni ochish' || text === '/site') {
+  if (text === '📍 Ustaxona Lokatsiyasi') {
+    const locMsg = `
+📍 <b>Toshkent 3D Ustaxonasi Manzili:</b>
+
+🏢 <b>Manzil:</b> Toshkent shahri, Chilonzor tumani, 9-mavze, 12-bino
+🚇 <b>Mo‘ljal:</b> Novza va Chilonzor metro bekatlari oralig‘i
+⏱️ <b>Ish vaqti:</b> Har kuni 09:00 dan 21:00 gacha
+
+🗺️ <a href="https://www.google.com/maps/dir/?api=1&destination=41.272145,69.204523">Google Maps orqali marshrut</a>
+🚕 <a href="https://yandex.uz/maps/?rtext=~41.272145,69.204523&rtt=auto">Yandex Maps / Go orqali marshrut</a>
+    `.trim();
+    await sendTelegramMessage(chatId, locMsg, { reply_markup: activeKeyboard });
+    return;
+  }
+
+  if (text === '💬 Bosh Administrator (@any3DCubicc)' || text === '💬 Administrator (@any3DCubicc)') {
+    const contactMsg = `
+👨‍💼 <b>Toshkent 3D Ustaxonasi Bosh Administratori:</b>
+
+Savollaringiz, chizmalar yoki nostandart buyurtmalar bo‘yicha to‘g‘ridan-to‘g‘ri bog‘lanishingiz mumkin:
+🔗 <b>Telegram:</b> @any3DCubicc
+    `.trim();
+    await sendTelegramMessage(chatId, contactMsg, { reply_markup: activeKeyboard });
+    return;
+  }
+
+  if (text === '🌐 Saytni ochish' || text === '/site' || text === '🛒 3D Bosmaga Buyurtma Berish') {
     const siteMsg = `
 🌐 <b>Toshkent 3D Ustaxonasi Portali</b>
 
-Saytni ochish uchun quyidagi tugmalardan birini bosing:
+Saytni ochish uchun quyidagi tugmani bosing:
 `.trim();
 
     const siteInline = {
       inline_keyboard: [
         [
-          { text: '🚀 Saytni ochish (Telegram Mini App)', web_app: { url: WEB_APP_URL } }
+          { text: '🚀 Saytni ochish (Mini App)', web_app: { url: WEB_APP_URL } }
         ],
         [
-          { text: '🌐 Brauzerda ochish (Jonli sayt)', url: WEB_APP_URL }
-        ],
-        [
-          { text: '💻 Localhostda ochish (Kompyuterda)', url: 'http://localhost:5173/' }
+          { text: '🌐 Brauzerda ochish', url: WEB_APP_URL }
         ]
       ]
     };
@@ -650,36 +716,63 @@ Saytni ochish uchun quyidagi tugmalardan birini bosing:
     return;
   }
 
+  // /start buyrug'i
   if (text.startsWith('/start')) {
-    const welcome = `
+    if (isExclusiveAdmin) {
+      const welcomeAdmin = `
+👑 <b>Assalomu alaykum, Any3DCubic!</b>
+
+Siz <b>Toshkent 3D Ustaxonasi</b> tizimining <b>Bosh Administratorisiz</b> (@any3DCubicc).
+Barcha yangi buyurtmalar, to‘lov cheklari va mijozlar xabarlari <b>faqat sizga</b> keladi.
+
+Buyurtmalarni tasdiqlash (Approve) yoki rad etish (Decline) vakolati faqat sizga berilgan.
+
+👇 <b>Boshqaruv uchun pastdagi "🛡️ Admin CRM & Chat" tugmasini bosing:</b>
+      `.trim();
+
+      const adminInline = {
+        inline_keyboard: [
+          [
+            { text: '🛡️ Admin CRM Portali (Mini App)', web_app: { url: `${WEB_APP_URL}?admin=any3dcubicc` } }
+          ]
+        ]
+      };
+
+      await sendTelegramMessage(chatId, welcomeAdmin, { reply_markup: adminMenuKeyboard });
+      await sendTelegramMessage(chatId, '⚙️ <b>Tezkor Admin CRM:</b>', { reply_markup: adminInline });
+      return;
+    } else {
+      const welcomeCustomer = `
 👋 <b>Assalomu alaykum, ${userName}!</b>
 
-Siz <b>Toshkent 3D Ustaxonasi</b> (@Any3dCubic_bot) tizimiga muvaffaqiyatli ulandingiz!
+<b>Toshkent 3D Ustaxonasi</b> (@Any3dCubic_bot) ga xush kelibsiz!
+Bizda istalgan murakkablikdagi shesterna, avtomobil ehtiyot qismlari, muhandislik korpuslari hamda arxitektura maketlarini tezkor 3D bosmaga buyurtma berishingiz mumkin.
 
-🛡️ <b>Holat:</b> Siz administrator sifatida ro‘yxatga olindingiz.
-Endi veb-saytdan tushadigan har bir 3D bosma buyurtmasi ushbu botga darhol kelib tushadi!
+👇 <b>Buyurtma berish uchun pastdagi tugmani bosing:</b>
+      `.trim();
 
-👇 <b>Saytni ochish uchun pastdagi "🌐 Saytni ochish" tugmasini bosing:</b>
-`.trim();
-
-    const startInline = {
-      inline_keyboard: [
-        [
-          { text: '🚀 Saytni ochish (Mini App)', web_app: { url: WEB_APP_URL } }
+      const customerInline = {
+        inline_keyboard: [
+          [
+            { text: '🚀 3D Bosmaga Buyurtma Berish (Mini App)', web_app: { url: WEB_APP_URL } }
+          ]
         ]
-      ]
-    };
+      };
 
-    // Send with both bottom keyboard and inline button
-    await sendTelegramMessage(chatId, welcome, { reply_markup: mainMenuKeyboard });
-    await sendTelegramMessage(chatId, '🚀 <b>Saytni to‘g‘ridan-to‘g‘ri ishga tushirish:</b>', { reply_markup: startInline });
-    return;
+      await sendTelegramMessage(chatId, welcomeCustomer, { reply_markup: customerMenuKeyboard });
+      await sendTelegramMessage(chatId, '🛒 <b>3D Studiya va Narx Hisoblagich:</b>', { reply_markup: customerInline });
+      return;
+    }
   }
 
-  if (text === '📦 Oxirgi buyurtmalar' || text === '/orders') {
+  if (text === '📦 Oxirgi buyurtmalar' || text === '📦 Barcha buyurtmalar' || text === '/orders') {
+    if (!isExclusiveAdmin) {
+      await sendTelegramMessage(chatId, 'ℹ️ Buyurtmangizni kuzatish uchun saytdagi "Buyurtmani Kuzatish" bo‘limidan foydalaning.', { reply_markup: activeKeyboard });
+      return;
+    }
     const orders = getOrders();
     if (orders.length === 0) {
-      await sendTelegramMessage(chatId, '📦 Hozircha yangi buyurtmalar mavjud emas.', { reply_markup: mainMenuKeyboard });
+      await sendTelegramMessage(chatId, '📦 Hozircha yangi buyurtmalar mavjud emas.', { reply_markup: activeKeyboard });
       return;
     }
     const recent = orders.slice(0, 5);
@@ -687,30 +780,28 @@ Endi veb-saytdan tushadigan har bir 3D bosma buyurtmasi ushbu botga darhol kelib
     recent.forEach((ord, i) => {
       orderMsg += `${i + 1}. <b>${ord.orderId || '#T3D'}</b> — ${ord.customerName} (${ord.customerPhone})\n`;
       orderMsg += `   Detal: ${ord.orderTypeTitle} | ${ord.material} (${ord.quantity} dona)\n`;
-      orderMsg += `   Summa: <b>${ord.grandTotal}</b>\n\n`;
+      orderMsg += `   Summa: <b>${ord.grandTotal}</b> | Holat: <b>${ord.status || 'pending'}</b>\n\n`;
     });
-    await sendTelegramMessage(chatId, orderMsg, { reply_markup: mainMenuKeyboard });
+    await sendTelegramMessage(chatId, orderMsg, { reply_markup: activeKeyboard });
     return;
   }
 
-  if (text === '📊 Statistika' || text === '/stats' || text === '/status' || text === '/ping') {
+  if (text === '📊 Statistika' || text === '📊 Tizim holati (/status)' || text === '/stats' || text === '/status' || text === '/ping') {
     const orders = getOrders();
-    const subsCount = getSubscribers().length;
     const uptimeSec = Math.floor(process.uptime());
     const memUsage = Math.round(process.memoryUsage().rss / 1024 / 1024);
     const pendingOrders = orders.filter(o => !o.status || o.status === 'pending').length;
     const statsMsg = `
 📊 <b>Any3D Bot 24/7 Tizim Holati:</b>
 
+👑 <b>Bosh Administrator:</b> @any3DCubicc
 🟢 <b>Holat:</b> 100% Faol (24/7 Online)
-⏱️ <b>Uptime (Ishlash davomiyligi):</b> ${Math.floor(uptimeSec / 3600)} soat ${Math.floor((uptimeSec % 3600) / 60)} daqiqa ${uptimeSec % 60} sek
-🧠 <b>Xotira (RAM):</b> ${memUsage} MB (Yengil va optimallashgan)
-📦 <b>Jami buyurtmalar:</b> ${orders.length} ta (${pendingOrders} ta kutilmoqda)
-👨‍💼 <b>Ulangan adminlar:</b> ${subsCount} ta
-🕒 <b>Server vaqti:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
-🚀 <b>Versiya:</b> v2.0.0 (Crash-Proof, 24/7 Cloud Ready)
-`.trim();
-    await sendTelegramMessage(chatId, statsMsg, { reply_markup: mainMenuKeyboard });
+⏱️ <b>Uptime:</b> ${Math.floor(uptimeSec / 3600)} soat ${Math.floor((uptimeSec % 3600) / 60)} daq ${uptimeSec % 60} sek
+🧠 <b>RAM:</b> ${memUsage} MB
+📦 <b>Jami buyurtmalar:</b> ${orders.length} ta (${pendingOrders} ta tasdiq kutilmoqda)
+🕒 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
+    `.trim();
+    await sendTelegramMessage(chatId, statsMsg, { reply_markup: activeKeyboard });
     return;
   }
 
@@ -718,21 +809,20 @@ Endi veb-saytdan tushadigan har bir 3D bosma buyurtmasi ushbu botga darhol kelib
     const helpMsg = `
 ℹ️ <b>Yordam & Ma'lumot:</b>
 
-Ushbu bot Toshkent 3D Ustaxonasi veb-sayti bilan to‘liq integratsiya qilingan.
-Saytdan buyurtma berilgan zahoti barcha ma'lumotlar avtomatik shu yerga keladi.
+Ushbu bot Toshkent 3D Ustaxonasi (@Any3dCubic_bot) portali bilan integratsiya qilingan.
+Bosh Administrator: @any3DCubicc
 
 Buyruqlar:
-/start — Botni yangilash
-/orders — Oxirgi buyurtmalar
-/stats — Tizim statistikasi
-/help — Yordam
-`.trim();
-    await sendTelegramMessage(chatId, helpMsg, { reply_markup: mainMenuKeyboard });
+/start — Botni qayta ishga tushirish
+/live — Dastgoh jonli telemetriyasi
+/site — Saytni ochish
+    `.trim();
+    await sendTelegramMessage(chatId, helpMsg, { reply_markup: activeKeyboard });
     return;
   }
 
   // Default answer
-  await sendTelegramMessage(chatId, `Buyruq tushunarsiz bo'ldi. Menyudan foydalaning.`, { reply_markup: mainMenuKeyboard });
+  await sendTelegramMessage(chatId, `Buyruq tushunarsiz bo'ldi. Menyudan foydalaning.`, { reply_markup: activeKeyboard });
 }
 
 export function stopBotPolling() {

@@ -727,8 +727,8 @@ export class OrderConfigurator {
                   <button type="button" class="btn-reupload-receipt" id="btn-reupload-receipt">
                     🔄 Qayta Haqiqiy Chek Yuklash
                   </button>
-                  <a href="https://t.me/khayru1ayev" target="_blank" class="btn-contact-admin" id="btn-contact-admin">
-                    💬 Administrator bilan bog‘lanish (@khayru1ayev)
+                  <a href="https://t.me/any3DCubicc" target="_blank" class="btn-contact-admin" id="btn-contact-admin">
+                    💬 Bosh administrator bilan bog‘lanish (@any3DCubicc)
                   </a>
                 </div>
               </div>
@@ -1054,7 +1054,7 @@ export class OrderConfigurator {
           // Zaxira: Agar statik GitHub Pages yoki server o'chiq bo'lsa, to'g'ridan-to'g'ri Telegram API orqali yetkazish
           if (!backendDelivered) {
             const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-            const adminIds = (import.meta.env.VITE_ADMIN_CHAT_IDS || '6541554878,8929216064').split(',').map(s => s.trim());
+            const adminIds = (import.meta.env.VITE_ADMIN_CHAT_IDS || '8929216064').split(',').map(s => s.trim());
             if (botToken) {
               const cleanPhone = (orderData.customerPhone || '').replace(/[^0-9+]/g, '');
               const hasReceipt = Boolean(orderData.receiptImage);

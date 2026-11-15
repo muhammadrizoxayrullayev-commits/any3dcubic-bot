@@ -8,8 +8,9 @@ import { AdminCRM } from './components/AdminCRM.js';
 class App {
   constructor() {
     this.appContainer = document.querySelector('#app');
-    this.currentView = 'configurator';
     this.currency = 'UZS';
+    this.isAdmin = this.checkAdminAuth();
+    this.currentView = this.isAdmin && new URLSearchParams(window.location.search).get('admin') ? 'admin' : 'configurator';
     this.threeStudio = null;
     this.configurator = null;
     this.pitchDeck = null;
@@ -18,6 +19,33 @@ class App {
     this.latestOrder = null;
 
     this.init();
+  }
+
+  checkAdminAuth() {
+    // 1. Telegram WebApp user tekshiruvi (ID: 8929216064 yoki @any3DCubicc)
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (tgUser) {
+      const uname = (tgUser.username || '').toLowerCase();
+      if (tgUser.id === 8929216064 || uname === 'any3dcubicc') {
+        sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+        return true;
+      }
+    }
+
+    // 2. URL parameter tekshiruvi (?admin=any3dcubicc)
+    const params = new URLSearchParams(window.location.search);
+    const adminParam = (params.get('admin') || '').toLowerCase();
+    if (adminParam === 'any3dcubicc' || adminParam === 'any3d77' || adminParam === 'any3dcubic777') {
+      sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+      return true;
+    }
+
+    // 3. Sessiyada saqlangan adminlik
+    if (sessionStorage.getItem('any3d_admin_auth') === 'any3DCubicc') {
+      return true;
+    }
+
+    return false;
   }
 
   init() {
@@ -84,10 +112,10 @@ class App {
             <span class="tab-text-full">Buyurtmani Kuzatish & Chat</span>
             <span class="tab-text-short">Kuzatuv & Chat</span>
           </button>
-          <button type="button" class="nav-tab-btn ${this.currentView === 'admin' ? 'active-admin' : ''}" data-view="admin" id="tab-admin">
-            <span class="tab-icon">🛡️</span>
-            <span class="tab-text-full">Admin CRM & Chat</span>
-            <span class="tab-text-short">Admin CRM</span>
+          <button type="button" class="nav-tab-btn ${this.currentView === 'admin' ? 'active-admin' : ''} ${this.isAdmin ? 'admin-verified' : ''}" data-view="admin" id="tab-admin">
+            <span class="tab-icon">${this.isAdmin ? '👑' : '🛡️'}</span>
+            <span class="tab-text-full">${this.isAdmin ? '👑 Admin CRM (@any3DCubicc)' : 'Admin CRM & Chat'}</span>
+            <span class="tab-text-short">${this.isAdmin ? '👑 @any3DCubicc' : 'Admin CRM'}</span>
           </button>
         </div>
 
@@ -189,6 +217,43 @@ class App {
           </div>
         </div>
       </div>
+
+      <!-- 🔒 ADMIN AUTHENTICATION GATE MODAL (@any3DCubicc) -->
+      <div class="admin-auth-backdrop" id="admin-auth-modal" style="display: none;">
+        <div class="admin-auth-card">
+          <div class="auth-card-badge">👑 FAQAT @any3DCubicc UCHUN</div>
+          <h3 class="auth-card-title">Bosh Administrator Portali</h3>
+          <p class="auth-card-desc">
+            Ushbu bo‘lim faqat ustaxona rahbari <b>@any3DCubicc</b> uchun himoyalangan.
+            Barcha buyurtmalarni tasdiqlash, cheklarni tekshirish va rad etish vakolati faqat sizda mavjud.
+          </p>
+
+          <div class="auth-tg-box">
+            <span class="auth-tg-label">Telegram orqali to‘g‘ridan-to‘g‘ri kirish:</span>
+            <a href="https://t.me/Any3dCubic_bot?start=admin" target="_blank" class="btn-tg-auth-direct">
+              🤖 Telegram Botda Ochish (@any3DCubicc)
+            </a>
+          </div>
+
+          <div class="auth-divider"><span>yoki maxfiy PIN kodni kiriting</span></div>
+
+          <form class="auth-pin-form" id="admin-pin-form" onsubmit="return false;">
+            <div class="auth-input-group">
+              <input type="password" id="admin-pin-input" placeholder="Admin PIN kodi (masalan: any3dcubicc)" autocomplete="current-password">
+              <button type="submit" class="btn-submit-pin" id="btn-submit-pin">🔓 Kirish</button>
+            </div>
+            <div class="auth-error-msg" id="admin-auth-error" style="display: none;">
+              🚫 Noto‘g‘ri PIN! Kirish faqat @any3DCubicc uchun ruxsat etilgan.
+            </div>
+          </form>
+
+          <div class="auth-footer-actions">
+            <button type="button" class="btn-cancel-auth" id="btn-cancel-auth">
+              ✕ Bekor qilish (Saytga qaytish)
+            </button>
+          </div>
+        </div>
+      </div>
     `;
   }
 
@@ -280,12 +345,60 @@ class App {
         const btn = e.target.closest('.nav-tab-btn');
         if (btn) {
           const view = btn.getAttribute('data-view');
+          if (view === 'admin' && !this.checkAdminAuth()) {
+            const authModal = this.appContainer.querySelector('#admin-auth-modal');
+            const authInput = this.appContainer.querySelector('#admin-pin-input');
+            const authError = this.appContainer.querySelector('#admin-auth-error');
+            if (authModal) {
+              authModal.style.display = 'flex';
+              if (authError) authError.style.display = 'none';
+              if (authInput) {
+                authInput.value = '';
+                authInput.focus();
+              }
+            }
+            return;
+          }
+
           if (view && view !== this.currentView) {
             this.currentView = view;
             this.mountView();
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }
+      });
+    }
+
+    // 🔒 ADMIN PIN FORM TEKSHIRUVI
+    const pinForm = this.appContainer.querySelector('#admin-pin-form');
+    const pinInput = this.appContainer.querySelector('#admin-pin-input');
+    const pinError = this.appContainer.querySelector('#admin-auth-error');
+    const authModal = this.appContainer.querySelector('#admin-auth-modal');
+    const btnCancelAuth = this.appContainer.querySelector('#btn-cancel-auth');
+
+    if (pinForm && pinInput) {
+      pinForm.addEventListener('submit', () => {
+        const val = pinInput.value.trim().toLowerCase();
+        if (val === 'any3dcubicc' || val === 'any3d77' || val === 'any3dcubic777') {
+          sessionStorage.setItem('any3d_admin_auth', 'any3DCubicc');
+          this.isAdmin = true;
+          if (authModal) authModal.style.display = 'none';
+          this.currentView = 'admin';
+          this.renderShell();
+          this.mountView();
+          this.attachNavListeners();
+        } else {
+          if (pinError) {
+            pinError.style.display = 'block';
+            pinError.textContent = '🚫 Noto‘g‘ri PIN! Kirish faqat @any3DCubicc uchun ruxsat etilgan.';
+          }
+        }
+      });
+    }
+
+    if (btnCancelAuth && authModal) {
+      btnCancelAuth.addEventListener('click', () => {
+        authModal.style.display = 'none';
       });
     }
 

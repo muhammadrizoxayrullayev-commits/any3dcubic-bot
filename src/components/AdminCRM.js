@@ -78,10 +78,10 @@ export class AdminCRM {
         <!-- CRM Bosh Sarlavhasi -->
         <div class="crm-top-bar">
           <div class="crm-title-area">
-            <div class="crm-badge">🛡️ ADMIN BOSHQARUV PANELI</div>
+            <div class="crm-badge">👑 YAGONA BOSH ADMINISTRATOR: @any3DCubicc</div>
             <h2 class="crm-main-title">Mijozlar Profili va Buyurtmalar Boshqaruvi</h2>
             <p class="crm-sub-text">
-              Saytdan va Telegram botdan kelgan barcha buyurtmalar, to‘lov cheklari va mijozlar bilan jonli chat
+              Faqat <b>@any3DCubicc</b> uchun maxsus boshqaruv portali. Barcha buyurtmalarni tasdiqlash (Approve) va rad etish (Decline) vakolati faqat sizda.
             </p>
           </div>
 
@@ -90,6 +90,9 @@ export class AdminCRM {
             <a href="https://t.me/Any3dCubic_bot" target="_blank" class="btn-crm-tg">
               🤖 Telegram Bot (@Any3dCubic_bot)
             </a>
+            <button type="button" class="btn-crm-logout" id="btn-crm-logout" title="Admin paneldan chiqish" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700;">
+              🔒 Chiqish
+            </button>
           </div>
         </div>
 
@@ -330,6 +333,14 @@ export class AdminCRM {
         btnRefresh.textContent = 'Yuklanmoqda...';
         await this.fetchOrders();
         btnRefresh.textContent = '🔄 Yangilash';
+      });
+    }
+
+    const btnLogout = this.mount.querySelector('#btn-crm-logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', () => {
+        sessionStorage.removeItem('any3d_admin_auth');
+        window.location.href = window.location.pathname;
       });
     }
 

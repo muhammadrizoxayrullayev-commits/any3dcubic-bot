@@ -350,7 +350,7 @@ export class OrderTracker {
       } catch (err) {
         // Fallback: Telegram Bot API orqali to'g'ridan-to'g'ri adminlarga yetkazish
         const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-        const adminIds = (import.meta.env.VITE_ADMIN_CHAT_IDS || '6541554878,8929216064').split(',').map(s => s.trim());
+        const adminIds = (import.meta.env.VITE_ADMIN_CHAT_IDS || '8929216064').split(',').map(s => s.trim());
         if (botToken) {
           const directMsg = `
 💬 <b>MIJOZDAN JONLI CHAT XABARI (Zaxira Kanal)!</b>
