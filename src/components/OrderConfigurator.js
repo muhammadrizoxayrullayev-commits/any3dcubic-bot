@@ -664,20 +664,7 @@ export class OrderConfigurator {
                 </div>
 
                 <div class="verifying-sub-note">
-                  ⚡ <i>Odatda tekshiruv 1-3 daqiqa davom etadi. Qabul qilingan zahoti ekran avtomatik yangilanadi.</i>
-                </div>
-
-                <!-- Tezkor sinov (Simulyatsiya) paneli: Tasdiqlash yoki Rad etishni ko'rish -->
-                <div class="admin-simulation-panel">
-                  <div class="sim-label">🧪 Test uchun tezkor tekshiruv:</div>
-                  <div class="sim-btn-group">
-                    <button type="button" class="btn-sim-approve" id="btn-sim-approve">
-                      ✅ Tasdiqlashni sinash (Approve)
-                    </button>
-                    <button type="button" class="btn-sim-decline" id="btn-sim-decline">
-                      ❌ Rad etishni sinash (Fake / Decline)
-                    </button>
-                  </div>
+                  ⚡ <i>Odatda tekshiruv 1-3 daqiqa davom etadi. Administrator tasdiqlagan zahoti ekran avtomatik yangilanadi.</i>
                 </div>
               </div>
 
@@ -1083,37 +1070,56 @@ ${orderData.orderNotes ? `\n📝 <b>Izoh:</b> <i>"${orderData.orderNotes}"</i>\n
 ⚡ <i>Holat: 🟡 To‘lov cheki admin tasdig‘i kutilmoqda</i>
               `.trim();
 
+              const tgNick = orderData.customerTelegram ? (orderData.customerTelegram.startsWith('@') ? orderData.customerTelegram : '@' + orderData.customerTelegram) : '';
               const actionKeyboard = {
                 inline_keyboard: [
                   [
                     { text: '✅ Qabul qilish (Approve)', callback_data: `approve_${orderData.orderId}` },
-                    { text: '❌ Rad etish (Fake)', callback_data: `decline_${orderData.orderId}` }
+                    { text: '❌ Rad etish (Decline)', callback_data: `decline_${orderData.orderId}` }
                   ],
                   [
-                    { text: '📞 Qo‘ng‘iroq', url: `tel:${cleanPhone}` },
-                    { text: '💬 Telegram', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+                    { text: '💬 Mijoz Telegrami', url: tgNick ? `https://t.me/${tgNick.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
                   ]
                 ]
               };
 
               for (const adminChatId of adminIds) {
                 try {
+                  let photoSent = false;
                   if (orderData.receiptImage && orderData.receiptImage.startsWith('data:image')) {
-                    const blob = await (await fetch(orderData.receiptImage)).blob();
-                    const fd = new FormData();
-                    fd.append('chat_id', adminChatId);
-                    fd.append('photo', blob, 'receipt.jpg');
-                    fd.append('caption', tgCaption);
-                    fd.append('parse_mode', 'HTML');
-                    fd.append('reply_markup', JSON.stringify(actionKeyboard));
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
-                  } else {
+                    try {
+                      const parts = orderData.receiptImage.split(';base64,');
+                      if (parts.length === 2) {
+                        const mime = parts[0].replace('data:', '') || 'image/jpeg';
+                        const bstr = atob(parts[1]);
+                        let n = bstr.length;
+                        const u8arr = new Uint8Array(n);
+                        while (n--) {
+                          u8arr[n] = bstr.charCodeAt(n);
+                        }
+                        const blob = new Blob([u8arr], { type: mime });
+                        const fd = new FormData();
+                        fd.append('chat_id', adminChatId);
+                        fd.append('photo', blob, 'receipt.jpg');
+                        fd.append('caption', tgCaption.slice(0, 1024));
+                        fd.append('parse_mode', 'HTML');
+                        fd.append('reply_markup', JSON.stringify(actionKeyboard));
+                        const resPhoto = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
+                        const resData = await resPhoto.json();
+                        if (resData.ok) photoSent = true;
+                      }
+                    } catch (pErr) {
+                      console.warn('sendPhoto parsing error:', pErr);
+                    }
+                  }
+
+                  if (!photoSent) {
                     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         chat_id: adminChatId,
-                        text: tgCaption,
+                        text: tgCaption.slice(0, 4096),
                         parse_mode: 'HTML',
                         reply_markup: actionKeyboard
                       })
@@ -1226,33 +1232,7 @@ ${orderData.orderNotes ? `\n📝 <b>Izoh:</b> <i>"${orderData.orderNotes}"</i>\n
           }
         };
 
-        // Simulyatsiya test tugmalari (Admin Telegramda bosishini saytda darhol sinash)
-        const simApproveBtn = this.mount.querySelector('#btn-sim-approve');
-        const simDeclineBtn = this.mount.querySelector('#btn-sim-decline');
-
-        if (simApproveBtn) {
-          simApproveBtn.onclick = () => {
-            fetch('/api/review-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderId: orderIdVal, action: 'approve' })
-            }).catch(() => {});
-            activateApproved();
-          };
-        }
-
-        if (simDeclineBtn) {
-          simDeclineBtn.onclick = () => {
-            fetch('/api/review-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderId: orderIdVal, action: 'decline' })
-            }).catch(() => {});
-            activateDeclined();
-          };
-        }
-
-        // Haqiqiy Telegram Bot orqali admin tasdiqlashini kutuvchi avtomatik tekshiruv (Polling)
+        // Haqiqiy Telegram Bot orqali admin (@any3DCubicc) tasdiqlashini kutuvchi avtomatik tekshiruv (Polling)
         let checkCount = 0;
         const statusChecker = setInterval(async () => {
           checkCount++;

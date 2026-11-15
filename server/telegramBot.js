@@ -101,7 +101,6 @@ export function saveOrderMessage(orderId, msg) {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '📞 Qo‘ng‘iroq qilish', url: `tel:${custPhone}` },
               { text: '💬 Telegramdan yozish', url: `https://t.me/+${custPhone.replace('+', '')}` }
             ]
           ]
@@ -364,8 +363,7 @@ ${(order.receiptImage || order.receiptPath) ? '🧾 <b>To‘lov cheki:</b> Rasm 
           { text: '❌ Rad etish (Decline)', callback_data: `decline_${order.orderId}` }
         ],
         [
-          { text: '📞 Qo‘ng‘iroq', url: `tel:${cleanPhone}` },
-          { text: '💬 Telegram', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: order.customerTelegram ? `https://t.me/${order.customerTelegram.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
         ]
       ]
     };
@@ -445,8 +443,7 @@ ${hasReceipt ? '🧾 <b>To‘lov Cheki:</b> Rasm biriktirildi (tekshiring)\n' : 
           { text: '❌ Rad etish (Fake / Decline)', callback_data: `decline_${orderId}` }
         ],
         [
-          { text: '📞 Qo‘ng‘iroq qilish', url: `tel:${cleanPhone}` },
-          { text: '💬 Telegramdan yozish', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: orderData.customerTelegram ? `https://t.me/${orderData.customerTelegram.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
         ]
       ]
     }
@@ -597,8 +594,7 @@ async function handleCallbackQuery(cq) {
     const followUpKeyboard = {
       inline_keyboard: [
         [
-          { text: '📞 Mijozga qo‘ng‘iroq', url: `tel:${cleanPhone}` },
-          { text: '💬 Telegramdan yozish', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
         ]
       ]
     };
