@@ -693,11 +693,14 @@ export async function handleUpdate(update) {
         { text: '🛡️ Admin CRM & Chat', web_app: { url: `${WEB_APP_URL}?admin=any3dcubicc` } }
       ],
       [
-        { text: '📦 Barcha buyurtmalar' },
-        { text: '📊 Tizim holati (/status)' }
+        { text: '🛍️ Creality Do‘koni (Narxlar)', web_app: { url: `${WEB_APP_URL}?view=shop&pin=083010` } },
+        { text: '📦 Barcha buyurtmalar' }
       ],
       [
-        { text: '📡 Dastgoh Telemetriyasi (LIVE)' },
+        { text: '📊 Tizim holati (/status)' },
+        { text: '📡 Dastgoh Telemetriyasi (LIVE)' }
+      ],
+      [
         { text: 'ℹ️ Yordam' }
       ]
     ],
@@ -711,11 +714,14 @@ export async function handleUpdate(update) {
         { text: '🛒 3D Bosmaga Buyurtma Berish', web_app: { url: WEB_APP_URL } }
       ],
       [
-        { text: '📦 Buyurtmamni Kuzatish' },
-        { text: '📍 Ustaxona Lokatsiyasi' }
+        { text: '🛍️ Creality 3D Do‘koni', web_app: { url: `${WEB_APP_URL}?view=shop` } },
+        { text: '📦 Buyurtmamni Kuzatish' }
       ],
       [
-        { text: '📡 Jonli Telemetriya (LIVE)' },
+        { text: '📍 Ustaxona Lokatsiyasi' },
+        { text: '📡 Jonli Telemetriya (LIVE)' }
+      ],
+      [
         { text: '💬 Bosh Administrator (@any3DCubicc)' }
       ]
     ],
@@ -804,6 +810,7 @@ Dastgoh harorati va navbatni real vaqtda ko‘rish uchun <b>"📡 Jonli Telemetr
 
   const isBuiltinNavCommand = [
     '🌐 saytni ochish', '/site', '🛒 3d bosmaga buyurtma berish',
+    '🛍️ creality 3d do‘koni', '🛍️ creality do‘koni (narxlar)', '/shop', 'shop', 'dokon', 'do\'kon',
     '📡 jonli telemetriya (live)', '📡 dastgoh telemetriyasi (live)',
     '📍 ustaxona lokatsiyasi', '💬 bosh administrator (@any3dcubicc)',
     '💬 administrator (@any3dcubicc)', '📦 barcha buyurtmalar', '📦 oxirgi buyurtmalar',
@@ -938,6 +945,37 @@ Saytni ochish uchun quyidagi tugmani bosing:
     };
 
     await sendTelegramMessage(chatId, siteMsg, { reply_markup: siteInline });
+    return;
+  }
+
+  if (text === '🛍️ Creality 3D Do‘koni' || text === '🛍️ Creality Do‘koni (Narxlar)' || text === '/shop' || text.toLowerCase() === 'shop' || text.toLowerCase() === 'dokon' || text.toLowerCase() === 'do\'kon') {
+    const shopUrl = isExclusiveAdmin ? `${WEB_APP_URL}?view=shop&pin=083010` : `${WEB_APP_URL}?view=shop`;
+    const shopMsg = `
+🛍️ <b>CREALITY CLOUD 3D DO‘KONI</b>
+
+Dunyoga mashhur <b>Creality Cloud</b> (<a href="https://www.crealitycloud.com/ru">www.crealitycloud.com/ru</a>) rasmiy 3D uskunalari Toshkent omborida:
+
+• <b>3D Printerlar:</b> Creality K1 Max (600 mm/s), K1C Carbon, Ender-3 V3 (CoreXZ), Ender-3 V3 KE, Halot-Mage 8K
+• <b>Filamentlar:</b> Hyper PLA (600 mm/s), CR-PETG, CR-ABS, CR-TPU elastik rezina
+• <b>Aksessuarlar:</b> Space Pi quritgich kamerasi, Nebula Smart Kit, po‘lat soplolar
+• <b>3D Modellar:</b> 500+ sertifikatlangan tayyor CAD chizmalar to‘plami
+
+${isExclusiveAdmin ? '👑 <i>Bosh administrator: Siz do‘konda to‘g‘ridan-to‘g‘ri mahsulot narxlarini tahrirlashingiz mumkin.</i>\n' : ''}
+👇 Mahsulotlarni ko‘rish va buyurtma berish uchun quyidagi tugmani bosing:
+    `.trim();
+
+    const shopInline = {
+      inline_keyboard: [
+        [
+          { text: '🛍️ Creality Do‘konini Ochish (Mini App)', web_app: { url: shopUrl } }
+        ],
+        [
+          { text: '🌐 Creality Cloud Rasmiy Sayti', url: 'https://www.crealitycloud.com/ru' }
+        ]
+      ]
+    };
+
+    await sendTelegramMessage(chatId, shopMsg, { reply_markup: shopInline });
     return;
   }
 

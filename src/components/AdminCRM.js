@@ -86,6 +86,9 @@ export class AdminCRM {
           </div>
 
           <div class="crm-quick-actions">
+            <button type="button" class="btn-crm-shop" id="btn-crm-shop" style="background: rgba(0, 210, 106, 0.15); border: 1px solid rgba(0, 210, 106, 0.4); color: #00d26a; padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700;">
+              🛍️ Creality Do‘kon Narxlari
+            </button>
             <button type="button" class="btn-crm-refresh" id="btn-crm-refresh">🔄 Yangilash</button>
             <a href="https://t.me/Any3dCubic_bot" target="_blank" class="btn-crm-tg">
               🤖 Telegram Bot (@Any3dCubic_bot)
@@ -326,6 +329,13 @@ export class AdminCRM {
   }
 
   attachEventListeners() {
+    const btnShop = this.mount.querySelector('#btn-crm-shop');
+    if (btnShop && this.onViewChange) {
+      btnShop.addEventListener('click', () => {
+        this.onViewChange('shop');
+      });
+    }
+
     // Refresh button
     const btnRefresh = this.mount.querySelector('#btn-crm-refresh');
     if (btnRefresh) {

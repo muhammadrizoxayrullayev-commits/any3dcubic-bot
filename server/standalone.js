@@ -16,6 +16,32 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
+const DATA_DIR = path.join(projectRoot, 'data');
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+
+function getProducts() {
+  try {
+    if (fs.existsSync(PRODUCTS_FILE)) {
+      return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8') || '[]');
+    }
+  } catch (e) {
+    console.error('getProducts error:', e.message);
+  }
+  return [];
+}
+
+function saveProducts(products) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8');
+    return true;
+  } catch (e) {
+    console.error('saveProducts error:', e.message);
+    return false;
+  }
+}
 
 // Load environment variables safely
 function loadEnv() {
@@ -205,6 +231,82 @@ const server = http.createServer(async (req, res) => {
       }
       const saved = saveOrderMessage(orderId, { sender, senderName, text });
       return sendJSON(res, 200, { ok: true, message: saved });
+    } catch (err) {
+      return sendJSON(res, 500, { ok: false, error: err.message });
+    }
+  }
+
+  // 8. Creality Shop products list API
+  if (pathname === '/api/products' && req.method === 'GET') {
+    const products = getProducts();
+    return sendJSON(res, 200, { ok: true, products });
+  }
+
+  // 9. Update product price/details API (Admin PIN protected)
+  if (pathname === '/api/update-product' && req.method === 'POST') {
+    try {
+      const body = await readBody(req);
+      const { pin, productId, priceUZS, priceUSD, inStock, stockStatus, badge, name } = body;
+      
+      // Faqat to'g'ri PIN kod (083010) bilan kirganlar narxni o'zgartira oladi
+      if (pin !== '083010') {
+        return sendJSON(res, 403, { ok: false, error: 'Ruxsat yo‘q! Noto‘g‘ri PIN kod.' });
+      }
+
+      if (!productId) {
+        return sendJSON(res, 400, { ok: false, error: 'Missing productId' });
+      }
+
+      const products = getProducts();
+      const idx = products.findIndex(p => p.id === productId);
+      if (idx === -1) {
+        return sendJSON(res, 404, { ok: false, error: 'Mahsulot topilmadi' });
+      }
+
+      if (priceUZS !== undefined) products[idx].priceUZS = Number(priceUZS);
+      if (priceUSD !== undefined) products[idx].priceUSD = Number(priceUSD);
+      if (inStock !== undefined) products[idx].inStock = Boolean(inStock);
+      if (stockStatus !== undefined) products[idx].stockStatus = stockStatus;
+      if (badge !== undefined) products[idx].badge = badge;
+      if (name !== undefined) products[idx].name = name;
+      products[idx].updatedAt = new Date().toISOString();
+
+      saveProducts(products);
+      console.log(`🏷️ Mahsulot narxi yangilandi: ${products[idx].name} -> ${products[idx].priceUZS} so'm`);
+      return sendJSON(res, 200, { ok: true, product: products[idx] });
+    } catch (err) {
+      return sendJSON(res, 500, { ok: false, error: err.message });
+    }
+  }
+
+  // 10. Creality Shop order API
+  if (pathname === '/api/shop-order' && req.method === 'POST') {
+    try {
+      const body = await readBody(req);
+      const { productId, productName, priceUZS, customerName, customerPhone, customerTelegram, deliveryAddress, orderNotes } = body;
+      
+      const orderId = '#SHOP-' + Math.floor(1000 + Math.random() * 9000);
+      const cleanPhone = (customerPhone || '').replace(/[^0-9+]/g, '');
+
+      const shopOrder = {
+        orderId,
+        customerName: customerName || 'Mijoz',
+        customerPhone: customerPhone || 'Kiritilmagan',
+        customerTelegram: customerTelegram || '',
+        deliveryAddress: deliveryAddress || '',
+        orderTypeTitle: `🛍️ Do‘kon: ${productName || 'Creality Uskunasi'}`,
+        material: 'Original Creality',
+        quantity: 1,
+        grandTotal: `${Number(priceUZS || 0).toLocaleString('uz-UZ').replace(/,/g, ' ')} so‘m`,
+        turnaround: 'Tezkor yetkazish',
+        deliveryMethodTitle: '🛵 Kuryer / Toshkent omboridan',
+        orderNotes: orderNotes || '',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+      const result = await notifyNewOrder(shopOrder);
+      return sendJSON(res, 200, { ok: true, orderId, ...result });
     } catch (err) {
       return sendJSON(res, 500, { ok: false, error: err.message });
     }

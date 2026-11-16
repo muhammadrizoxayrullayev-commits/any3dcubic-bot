@@ -4,18 +4,29 @@ import { OrderConfigurator } from './components/OrderConfigurator.js';
 import { PitchDeck } from './components/PitchDeck.js';
 import { OrderTracker } from './components/OrderTracker.js';
 import { AdminCRM } from './components/AdminCRM.js';
+import { CrealityShop } from './components/CrealityShop.js';
 
 class App {
   constructor() {
     this.appContainer = document.querySelector('#app');
     this.currency = 'UZS';
     this.isAdmin = this.checkAdminAuth();
-    this.currentView = this.isAdmin && new URLSearchParams(window.location.search).get('admin') ? 'admin' : 'configurator';
+    
+    const searchParams = new URLSearchParams(window.location.search);
+    if (this.isAdmin && searchParams.get('admin')) {
+      this.currentView = 'admin';
+    } else if (searchParams.get('view') === 'shop' || searchParams.get('shop')) {
+      this.currentView = 'shop';
+    } else {
+      this.currentView = 'configurator';
+    }
+
     this.threeStudio = null;
     this.configurator = null;
     this.pitchDeck = null;
     this.orderTracker = null;
     this.adminCRM = null;
+    this.crealityShop = null;
     this.latestOrder = null;
 
     this.init();
@@ -96,27 +107,32 @@ class App {
           </div>
         </div>
 
-        <!-- Rejimlar Almashinuvi (4 ta to'liq rejim) -->
+        <!-- Rejimlar Almashinuvi (5 ta to'liq rejim) -->
         <div class="mode-switcher-nav">
           <button type="button" class="nav-tab-btn ${this.currentView === 'configurator' ? 'active' : ''}" data-view="configurator" id="tab-config">
-            <span class="tab-icon">🛒</span>
-            <span class="tab-text-full">Buyurtma Portali va 3D Studiya</span>
-            <span class="tab-text-short">Buyurtma</span>
+            <span class="tab-icon">🖨️</span>
+            <span class="tab-text-full">3D Bosma Studiya</span>
+            <span class="tab-text-short">3D Studiya</span>
+          </button>
+          <button type="button" class="nav-tab-btn ${this.currentView === 'shop' ? 'active-shop' : ''}" data-view="shop" id="tab-shop">
+            <span class="tab-icon">🛍️</span>
+            <span class="tab-text-full">Creality 3D Do‘koni</span>
+            <span class="tab-text-short">Do‘kon</span>
           </button>
           <button type="button" class="nav-tab-btn ${this.currentView === 'pitch' ? 'active-pitch' : ''}" data-view="pitch" id="tab-pitch">
             <span class="tab-icon">💼</span>
             <span class="tab-text-full">Tanlov Pitchi & Moliyaviy Model</span>
-            <span class="tab-text-short">Pitch & Model</span>
+            <span class="tab-text-short">Pitch</span>
           </button>
           <button type="button" class="nav-tab-btn ${this.currentView === 'tracker' ? 'active' : ''}" data-view="tracker" id="tab-tracker">
             <span class="tab-icon">📦</span>
             <span class="tab-text-full">Buyurtmani Kuzatish & Chat</span>
-            <span class="tab-text-short">Kuzatuv & Chat</span>
+            <span class="tab-text-short">Kuzatuv</span>
           </button>
           <button type="button" class="nav-tab-btn ${this.currentView === 'admin' ? 'active-admin' : ''} ${this.isAdmin ? 'admin-verified' : ''}" data-view="admin" id="tab-admin">
             <span class="tab-icon">${this.isAdmin ? '👑' : '🛡️'}</span>
-            <span class="tab-text-full">${this.isAdmin ? '👑 Admin CRM (@any3DCubicc)' : 'Admin CRM & Chat'}</span>
-            <span class="tab-text-short">${this.isAdmin ? '👑 @any3DCubicc' : 'Admin CRM'}</span>
+            <span class="tab-text-full">${this.isAdmin ? '👑 Admin CRM (@any3DCubicc)' : 'Admin CRM'}</span>
+            <span class="tab-text-short">${this.isAdmin ? '👑 Admin' : 'Admin'}</span>
           </button>
         </div>
 
@@ -267,10 +283,11 @@ class App {
     const tabs = this.appContainer.querySelectorAll('.nav-tab-btn');
     tabs.forEach(tab => {
       const view = tab.getAttribute('data-view');
-      tab.classList.remove('active', 'active-pitch', 'active-admin');
+      tab.classList.remove('active', 'active-pitch', 'active-admin', 'active-shop');
       if (view === this.currentView) {
         if (view === 'pitch') tab.classList.add('active-pitch');
         else if (view === 'admin') tab.classList.add('active-admin');
+        else if (view === 'shop') tab.classList.add('active-shop');
         else tab.classList.add('active');
       }
     });
@@ -301,6 +318,18 @@ class App {
       setTimeout(() => {
         if (this.threeStudio) this.threeStudio.onResize();
       }, 50);
+
+    } else if (this.currentView === 'shop') {
+      const shopMount = document.createElement('div');
+      mainContent.appendChild(shopMount);
+
+      this.crealityShop = new CrealityShop(shopMount, {
+        currency: this.currency,
+        onViewChange: (view) => {
+          this.currentView = view;
+          this.mountView();
+        }
+      });
 
     } else if (this.currentView === 'pitch') {
       const pitchMount = document.createElement('div');
@@ -443,6 +472,9 @@ class App {
 
             if (this.currentView === 'configurator' && this.configurator) {
               this.configurator.setCurrency(curr);
+            }
+            if (this.currentView === 'shop' && this.crealityShop) {
+              this.crealityShop.setCurrency(curr);
             }
           }
         }
