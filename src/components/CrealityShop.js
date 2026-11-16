@@ -96,7 +96,7 @@ export class CrealityShop {
         icon: "🐉",
         crealityUrl: "https://www.crealitycloud.com/ru/model-category/popular",
         inStock: true,
-        stockStatus: "Ustaxonada tayyor (Chilonzor)",
+        stockStatus: "Ustaxonada tayyor (Toshkent)",
         specs: [
           "Texnologiya: Print-in-Place (Stoldan to‘liq harakatlanuvchi chiqadi)",
           "Vazni: ~110 gramm | O‘lchami: Uzunligi 45 sm",
@@ -380,7 +380,7 @@ export class CrealityShop {
             <h1 class="shop-title">Creality Cloud 3D Modellar & STL Katalogi</h1>
             <p class="shop-desc">
               Dunyoga mashhur <b>Creality Cloud</b> (<a href="https://www.crealitycloud.com/ru" target="_blank" class="creality-link">www.crealitycloud.com/ru</a>) platformasidagi eng mashhur 3D modellar, harakatlanuvchi Flexi o‘yinchoqlar, qahramonlar, muhandislik detallari va uy bezaklari. 
-              <b>Istalgan modelni tanlang — Chilonzor ustaxonamizda professional 3D printerda sifatli chiqarib beramiz!</b>
+              <b>Istalgan modelni tanlang — Toshkent ustaxonamizda professional 3D printerda sifatli chiqarib beramiz!</b>
             </p>
 
             <div class="shop-stats-strip">
@@ -535,7 +535,7 @@ export class CrealityShop {
 
               <div class="form-field">
                 <label>Holat Matni:</label>
-                <input type="text" id="edit-input-stock-status" placeholder="Ustaxonada tayyor (Chilonzor)">
+                <input type="text" id="edit-input-stock-status" placeholder="Ustaxonada tayyor (Toshkent)">
               </div>
 
               <div class="shop-modal-actions">
@@ -558,7 +558,7 @@ export class CrealityShop {
                 <span class="s-m-icon">🖨️</span>
                 <div>
                   <h3 id="order-modal-prod-name">Modelni Chop Etishga Buyurtma</h3>
-                  <small id="order-modal-prod-price">Toshkent 3D Ustaxonasi (Chilonzor)</small>
+                  <small id="order-modal-prod-price">Toshkent 3D Ustaxonasi</small>
                 </div>
               </div>
               <button type="button" class="shop-modal-close" id="btn-close-order">✕</button>
@@ -585,7 +585,7 @@ export class CrealityShop {
                 </div>
                 <div class="form-field">
                   <label>Yetkazib Berish Manzili:</label>
-                  <input type="text" id="shop-cust-addr" placeholder="Chilonzor yoki Toshkent bo‘yicha">
+                  <input type="text" id="shop-cust-addr" placeholder="Toshkent bo‘ylab yoki Ustaxonadan olib ketish">
                 </div>
               </div>
 

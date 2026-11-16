@@ -155,7 +155,7 @@ export class OrderTracker {
           </div>
           <div class="tss-item">
             <span class="tss-lbl">Ustaxona:</span>
-            <strong class="tss-val">Chilonzor Markazi</strong>
+            <strong class="tss-val">Any3D Ustaxonasi</strong>
           </div>
         </div>
 
@@ -185,7 +185,7 @@ export class OrderTracker {
             <div class="t-step current">
               <div class="t-circle pulse">⚡</div>
               <div class="t-content">
-                <h4>3. Chop Etish Jarayoni Ketmoqda (Chilonzor Ustaxonasi)</h4>
+                <h4>3. Chop Etish Jarayoni Ketmoqda (Any3D Ustaxonasi)</h4>
                 <p>Anycubic Kobra 2 Pro faol. 320 qatlamdan 214-qatlam bosilmoqda. Sirt sifati a’lo.</p>
                 
                 <!-- Jonli Telemetriya Qutisi -->
@@ -228,7 +228,7 @@ export class OrderTracker {
             <div class="t-step future">
               <div class="t-circle">5</div>
               <div class="t-content">
-                <h4>5. ${this.currentOrder.deliveryMethod === 'bts' ? 'BTS Pochta Orqali Yuboriladi' : (this.currentOrder.deliveryMethod === 'yandex' ? 'Yandex Go Kuryeriga Topshiriladi' : 'Chilonzor Ustaxonasidan Olib Ketish')}</h4>
+                <h4>5. ${this.currentOrder.deliveryMethod === 'bts' ? 'BTS Pochta Orqali Yuboriladi' : (this.currentOrder.deliveryMethod === 'yandex' ? 'Yandex Go Kuryeriga Topshiriladi' : 'Ustaxonadan Olib Ketish (Sergeli, Yuqori Darxon)')}</h4>
                 <p>${this.currentOrder.deliveryMethod === 'bts' ? 'Viloyat pochtasiga topshirilib sizga kuzatuv trek-kodi beriladi.' : (this.currentOrder.deliveryMethod === 'yandex' ? 'Yandex Go kuryeri orqali eshigingizgacha yetkaziladi (to‘lov kuryerga).' : 'Himoya qutisiga qadoqlanib tayyor holatda topshiriladi.')}</p>
                 <span class="t-time">Bugun 18:30 gacha kutilmoqda</span>
               </div>
@@ -272,22 +272,22 @@ export class OrderTracker {
           <div class="wlc-left">
             <div class="wlc-badge">📍 Jismoniy Ustaxona Lokatsiyasi</div>
             <h4 class="wlc-title">Any3D Bosma & Prototip Ustaxonasi</h4>
-            <p class="wlc-address">🏬 Toshkent shahri, Chilonzor tumani, 9-mavze, 12-bino</p>
-            <p class="wlc-landmarks">🎯 Mo‘ljal: Chilonzor metro bekati, Chilonzor savdo markazi yaqinida</p>
+            <p class="wlc-address">🏬 Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy</p>
+            <p class="wlc-landmarks">🎯 Mo‘ljal: Navro‘z 6-tor ko‘chasi, Yuqori Darxon (Lokatsiya: 41.235141, 69.207236)</p>
             <p class="wlc-hours">⏱️ Ish vaqti: Dushanba – Shanba, 09:00 – 20:00</p>
-            <p class="wlc-phone">📞 Telefon: <a href="tel:+998901234567">+998 (90) 123-45-67</a></p>
+            <p class="wlc-phone">💬 Bog‘lanish: <a href="https://t.me/any3DCubicc" target="_blank">@any3DCubicc (Bosh Admin)</a></p>
           </div>
 
           <div class="wlc-right">
             <span class="wlc-hint">Telefoningizdagi xaritada marshrut chizish:</span>
             <div class="wlc-btn-group">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=41.272145,69.204523" target="_blank" class="wlc-map-btn google">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=41.235141,69.207236" target="_blank" class="wlc-map-btn google">
                 🗺️ Google Maps'da Ochish
               </a>
-              <a href="https://yandex.com/maps/?rtext=~41.272145,69.204523&rtt=auto" target="_blank" class="wlc-map-btn yandex">
+              <a href="https://yandex.uz/maps/?rtext=~41.235141,69.207236&rtt=auto" target="_blank" class="wlc-map-btn yandex">
                 📍 Yandex Maps'da Ochish
               </a>
-              <a href="https://maps.apple.com/?daddr=41.272145,69.204523" target="_blank" class="wlc-map-btn apple">
+              <a href="https://maps.apple.com/?daddr=41.235141,69.207236" target="_blank" class="wlc-map-btn apple">
                 🍏 Apple Maps (iPhone)
               </a>
               <a href="https://t.me/Any3dCubic_bot" target="_blank" class="wlc-map-btn tg">

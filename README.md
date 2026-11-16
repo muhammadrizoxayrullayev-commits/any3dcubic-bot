@@ -24,8 +24,8 @@ Ushbu tizim Toshkent shahridagi 3D bosma ustaxonasi uchun maxsus ishlab chiqilga
      - `/live` — Anycubic dastgohi real vaqt telemetriyasi (ekstruder 215°C, stol 60°C).
      - `/help` — Yordam va ma'lumotlar.
 
-3. **📍 Jonli Lokatsiya & Xaritalar:**
-   - Saytda Chilonzor ustaxonamiz lokatsiyasi Google Maps, Yandex Maps / Yandex Go va Apple Maps bilan to‘liq integratsiya qilingan.
+3. **📍 Jonli Lokatsiya & Xaritalar (41.235141, 69.207236):**
+   - Saytda ustaxonamiz lokatsiyasi (Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy) Google Maps, Yandex Maps / Yandex Go va Apple Maps bilan to‘liq integratsiya qilingan.
 
 4. **🚚 Shaffof Yetkazib Berish (0 so‘m):**
    - Sayt chekiga yetkazish puli qo‘shilmaydi. Toshkent bo‘yicha Yandex Dostavka (kuryerga to‘lanadi), viloyatlarga BTS Pochta orqali posilkani olishda to‘lanadi.

@@ -181,7 +181,7 @@ export const ORDER_TYPES = [
     icon: '📐',
     badge: 'Muhandislik Chizmasi',
     badgeColor: 'teal',
-    shortDesc: 'Faylingiz yo‘qmi? Singan detalni Chilonzor ustaxonamizga olib keling yoki fotosuratini yuboring — 3D model chizib beramiz.',
+    shortDesc: 'Faylingiz yo‘qmi? Singan detalni ustaxonamizga olib keling yoki fotosuratini yuboring — 3D model chizib beramiz.',
     targetCustomer: '3D modeli bo‘lmagan mijozlar, ustalar, kashfiyotchilar, korxonalar',
     recommendedMaterial: 'PETG',
     defaultInfill: 50,
@@ -207,7 +207,7 @@ export const ORDER_TYPES = [
 export const MATERIALS = [
   {
     id: 'PETG',
-    name: 'PETG Mustahkam (3DShef Chilonzor)',
+    name: 'PETG Mustahkam (Toshkent)',
     uzName: 'PETG Muhandislik Polimeri',
     type: 'Mustahkam Texnik Polimer',
     densityGcm3: 1.27,

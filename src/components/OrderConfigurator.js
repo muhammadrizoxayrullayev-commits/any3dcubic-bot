@@ -282,7 +282,7 @@ export class OrderConfigurator {
                   <input type="radio" name="modeling" value="broken-part" ${this.state.modelingService === 'broken-part' ? 'checked' : ''}>
                   <div class="radio-content">
                     <div class="radio-title">Singan Detaldan Qayta Chizma Tayyorlash</div>
-                    <div class="radio-desc">Singan namunani Chilonzorga olib keling yoki fotosuratlarni yuboring</div>
+                    <div class="radio-desc">Singan namunani ustaxonamizga olib keling yoki fotosuratlarni yuboring</div>
                   </div>
                   <span class="fee-tag">+${this.formatPrice(currentType.presets[this.state.presetIndex]?.modelingFeeUZS || 80000)}</span>
                 </label>
@@ -350,7 +350,7 @@ export class OrderConfigurator {
                   <span class="deliv-icon">🏬</span>
                   <div class="deliv-meta">
                     <strong>Ustaxonadan Olib Ketish</strong>
-                    <small>Chilonzor markazimizdan bepul</small>
+                    <small>Ustaxonamizdan bepul olib ketish</small>
                   </div>
                 </button>
                 <button type="button" class="deliv-card-btn ${this.state.delivery === 'yandex' ? 'active' : ''}" data-delivery="yandex">
@@ -374,7 +374,7 @@ export class OrderConfigurator {
                   ? '📦 <b>Viloyatlar bo‘ylab yetkazish:</b> Toshkentdan viloyatingizga BTS Pochta yoki EMU orqali 24 soat ichida yuboriladi. Pochta xarajati qabul qilib olinganda to‘lanadi (saytdagi hisobga qo‘shilmaydi).'
                   : (this.state.delivery === 'yandex'
                     ? '🛵 <b>Toshkent shahri bo‘ylab yetkazish:</b> Buyurtmangiz tayyor bo‘lgach Yandex Dostavka orqali manzilingizga tezkor jo‘natiladi. Yetkazib berish xarajati kuryerga qabul qilinganda to‘lanadi.'
-                    : '📍 <b>Ustaxonamizdan bepul olib ketish:</b> Buyurtmangiz tayyor bo‘lishi bilan Chilonzor ustaxonamizdan bepul olib ketishingiz mumkin. Manzil: Chilonzor 9-mavze.')
+                    : '📍 <b>Ustaxonamizdan bepul olib ketish:</b> Buyurtmangiz tayyor bo‘lishi bilan ustaxonamizdan bepul olib ketishingiz mumkin. Manzil: Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy (Lokatsiya: 41.235141, 69.207236).')
                 }
               </div>
             </div>
@@ -492,7 +492,7 @@ export class OrderConfigurator {
             <div class="modal-header">
               <div class="success-icon-badge">✅</div>
               <h3 class="modal-title">Buyurtmani Ishga Tushirishga Tayyormiz</h3>
-              <p class="modal-desc">Buyurtma parametrlarini tasdiqlang va Chilonzor ustaxonamiz navbatiga qo‘shing.</p>
+              <p class="modal-desc">Buyurtma parametrlarini tasdiqlang va ustaxonamiz navbatiga qo‘shing.</p>
             </div>
 
             <div class="modal-body">
@@ -500,7 +500,7 @@ export class OrderConfigurator {
                 <div class="invoice-top">
                   <div>
                     <h4 class="invoice-company">Toshkent 3D Bosma va Prototip Ustaxonasi</h4>
-                    <div class="invoice-district">Chilonzor tumani, Toshkent shahri | Tel: +998 (90) 123-45-67</div>
+                    <div class="invoice-district">Toshkent shahri, Sergeli tumani, Yuqori Darxon (41.235141, 69.207236) | @any3DCubicc</div>
                   </div>
                   <div class="invoice-meta">
                     <div class="order-num" id="inv-order-num">#T3D-UZ-8492</div>
@@ -561,7 +561,7 @@ export class OrderConfigurator {
                   </div>
                   <div class="form-field">
                     <label>Yetkazib Berish Manzili</label>
-                    <input type="text" id="cust-addr" placeholder="Chilonzor 9-kvartal yoki Olib ketish">
+                    <input type="text" id="cust-addr" placeholder="Toshkent bo‘ylab yoki Ustaxonadan olib ketish">
                   </div>
                 </div>
 
@@ -1024,7 +1024,7 @@ export class OrderConfigurator {
           grandTotal: this.formatPrice(pricing.grandTotalUZS),
           turnaround: this.state.turnaround,
           deliveryMethod: this.state.delivery,
-          deliveryMethodTitle: this.state.delivery === 'bts' ? '📦 Viloyatlarga BTS Pochta' : (this.state.delivery === 'yandex' ? '🛵 Toshkentda Yandex Dostavka' : '🏬 Ustaxonadan Olib Ketish (Chilonzor)'),
+          deliveryMethodTitle: this.state.delivery === 'bts' ? '📦 Viloyatlarga BTS Pochta' : (this.state.delivery === 'yandex' ? '🛵 Toshkentda Yandex Dostavka' : '🏬 Ustaxonadan Olib Ketish (Sergeli, Yuqori Darxon)'),
           receiptImage: this.state.receiptImage,
           createdAt: new Date().toISOString()
         };
@@ -1271,7 +1271,7 @@ ${orderData.orderNotes ? `\n📝 <b>Izoh:</b> <i>"${orderData.orderNotes}"</i>\n
           `• Soni: ${this.state.quantity} dona\n` +
           `• Zichlik: ${this.state.infill}% | Qatlam: ${this.state.layerHeight}mm\n` +
           `• Taxminiy Summa: ${this.formatPrice(pricing.grandTotalUZS)}\n\n` +
-          `Chilonzor ustaxonangizda qachon tayyor bo‘ladi?`
+          `Ustaxonangizda qachon tayyor bo‘ladi?`
         );
         window.open(`https://t.me/Any3dCubic_bot?start=order_${Date.now()}`, '_blank');
       });

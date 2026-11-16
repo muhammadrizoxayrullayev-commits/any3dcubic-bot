@@ -264,6 +264,27 @@ export async function sendTelegramMessage(chatId, text, extra = {}) {
   }
 }
 
+export async function sendTelegramLocation(chatId, latitude, longitude, extra = {}) {
+  if (!BOT_TOKEN) return false;
+  try {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendLocation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        latitude,
+        longitude,
+        ...extra
+      })
+    });
+    const data = await res.json();
+    return data.ok;
+  } catch (error) {
+    console.error('sendTelegramLocation xatosi:', error.message);
+    return false;
+  }
+}
+
 export async function sendTelegramPhoto(chatId, photoSource, caption, extra = {}) {
   if (!BOT_TOKEN || !photoSource) return false;
   try {
@@ -887,7 +908,7 @@ Bot sizga to‘lov cheki, mahsulot tafsilotlari, narxi va tayyorlanish jarayonin
 ⏱️ <b>Holat:</b> 🟢 <b>3D Chop etish jarayonida (Navbatda)</b>
 
 🖨️ <b>Ustaxona Dastgoh Telemetriyasi:</b>
-• Uskuna: Anycubic Kobra 2 Pro (Chilonzor ustaxonasi)
+• Uskuna: Anycubic Kobra 2 Pro (Toshkent ustaxonasi)
 • Ekstruder harorati: <b>215°C</b> / 215°C 🔥
 • Issiq stol harorati: <b>60°C</b> / 60°C 🌡️
 • Bosish tezligi: <b>250 mm/s</b>
@@ -901,18 +922,34 @@ Bot sizga to‘lov cheki, mahsulot tafsilotlari, narxi va tayyorlanish jarayonin
     return;
   }
 
-  if (text === '📍 Ustaxona Lokatsiyasi') {
+  if (text === '📍 Ustaxona Lokatsiyasi' || text === '/location' || text.toLowerCase() === 'lokatsiya' || text.toLowerCase() === 'manzil') {
     const locMsg = `
 📍 <b>Toshkent 3D Ustaxonasi Manzili:</b>
 
-🏢 <b>Manzil:</b> Toshkent shahri, Chilonzor tumani, 9-mavze, 12-bino
-🚇 <b>Mo‘ljal:</b> Novza va Chilonzor metro bekatlari oralig‘i
+🏢 <b>Manzil:</b> Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy
+📍 <b>Koordinatalar:</b> <code>41.235141, 69.207236</code>
 ⏱️ <b>Ish vaqti:</b> Har kuni 09:00 dan 21:00 gacha
+💬 <b>Bog‘lanish:</b> @any3DCubicc (Bosh Admin)
 
-🗺️ <a href="https://www.google.com/maps/dir/?api=1&destination=41.272145,69.204523">Google Maps orqali marshrut</a>
-🚕 <a href="https://yandex.uz/maps/?rtext=~41.272145,69.204523&rtt=auto">Yandex Maps / Go orqali marshrut</a>
+🗺️ <a href="https://www.google.com/maps/dir/?api=1&destination=41.235141,69.207236">Google Maps orqali ochish</a>
+🚕 <a href="https://yandex.uz/maps/?rtext=~41.235141,69.207236&rtt=auto">Yandex Maps / Go orqali marshrut</a>
+🍏 <a href="https://maps.apple.com/?daddr=41.235141,69.207236">Apple Maps orqali ochish</a>
     `.trim();
-    await sendTelegramMessage(chatId, locMsg, { reply_markup: activeKeyboard });
+
+    const locInline = {
+      inline_keyboard: [
+        [
+          { text: '🗺️ Google Maps', url: 'https://www.google.com/maps/dir/?api=1&destination=41.235141,69.207236' },
+          { text: '🚕 Yandex Maps', url: 'https://yandex.uz/maps/?rtext=~41.235141,69.207236&rtt=auto' }
+        ],
+        [
+          { text: '🍏 Apple Maps', url: 'https://maps.apple.com/?daddr=41.235141,69.207236' }
+        ]
+      ]
+    };
+
+    await sendTelegramLocation(chatId, 41.235141, 69.207236);
+    await sendTelegramMessage(chatId, locMsg, { reply_markup: locInline });
     return;
   }
 

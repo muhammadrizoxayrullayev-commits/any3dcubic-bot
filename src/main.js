@@ -140,7 +140,7 @@ class App {
         <div class="header-right-tools">
           <button type="button" class="btn-location-pill" id="btn-open-location" title="Ustaxona lokatsiyasini xaritada ochish (Google / Yandex Maps)">
             <span class="loc-pin">📍</span>
-            <span class="loc-name">Chilonzor, Toshkent</span>
+            <span class="loc-name">Sergeli, Toshkent</span>
             <span class="loc-tag">Xarita</span>
           </button>
           <button type="button" class="btn-fullscreen-toggle" id="btn-fullscreen" title="Brauzer tepasini yashirish (To'liq ekran)">
@@ -164,7 +164,7 @@ class App {
               <span class="loc-modal-icon">📍</span>
               <div>
                 <h3>Any3D Ustaxonasi Manzili & Lokatsiya</h3>
-                <p>Toshkent shahri, Chilonzor tumani</p>
+                <p>Toshkent shahri, Sergeli tumani</p>
               </div>
             </div>
             <button type="button" class="loc-modal-close" id="btn-close-location">✕</button>
@@ -176,34 +176,34 @@ class App {
               <div class="loc-map-glow"></div>
               <div class="loc-map-pin-pulse">
                 <span class="pin-wave"></span>
-                <div class="pin-badge">🖨️ Any3D Ustaxona (Chilonzor)</div>
+                <div class="pin-badge">🖨️ Any3D Ustaxonasi</div>
               </div>
-              <div class="loc-map-coordinates">41.272145° N, 69.204523° E • Chilonzor 9-mavze</div>
+              <div class="loc-map-coordinates">41.235141° N, 69.207236° E • Sergeli, Yuqori Darxon</div>
             </div>
 
             <!-- Aniq Manzil Ma'lumotlari -->
             <div class="loc-address-details">
               <div class="loc-row">
                 <span class="loc-k">🏬 Aniq Manzil:</span>
-                <strong class="loc-v">Toshkent shahri, Chilonzor tumani, 9-mavze, 12-bino</strong>
+                <strong class="loc-v">Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy</strong>
               </div>
               <div class="loc-row">
                 <span class="loc-k">🎯 Mo‘ljal:</span>
-                <span class="loc-v">Chilonzor metro bekati, Chilonzor Savdo Markazi yaqinida</span>
+                <span class="loc-v">Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi (41.235141, 69.207236)</span>
               </div>
               <div class="loc-row">
                 <span class="loc-k">⏱️ Ish Vaqti:</span>
                 <span class="loc-v">Dushanba – Shanba: 09:00 dan 20:00 gacha (Yakshanba: Navbatdagi buyurtmalar)</span>
               </div>
               <div class="loc-row">
-                <span class="loc-k">📞 Telefon:</span>
-                <strong class="loc-v"><a href="tel:+998901234567">+998 (90) 123-45-67</a></strong>
+                <span class="loc-k">📞 Aloqa:</span>
+                <strong class="loc-v"><a href="https://t.me/any3DCubicc" target="_blank">@any3DCubicc (Bosh Admin)</a></strong>
               </div>
             </div>
 
             <!-- Xaritalar Tugmalari -->
             <div class="loc-action-buttons">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=41.272145,69.204523" target="_blank" class="btn-map-app google-map-btn">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=41.235141,69.207236" target="_blank" class="btn-map-app google-map-btn">
                 <span class="map-icon">🗺️</span>
                 <div class="map-btn-meta">
                   <strong>Google Maps orqali ochish</strong>
@@ -211,7 +211,7 @@ class App {
                 </div>
               </a>
 
-              <a href="https://yandex.com/maps/?rtext=~41.272145,69.204523&rtt=auto" target="_blank" class="btn-map-app yandex-map-btn">
+              <a href="https://yandex.uz/maps/?rtext=~41.235141,69.207236&rtt=auto" target="_blank" class="btn-map-app yandex-map-btn">
                 <span class="map-icon">📍</span>
                 <div class="map-btn-meta">
                   <strong>Yandex Maps / Go orqali ochish</strong>
@@ -219,7 +219,7 @@ class App {
                 </div>
               </a>
 
-              <a href="https://maps.apple.com/?daddr=41.272145,69.204523" target="_blank" class="btn-map-app apple-map-btn">
+              <a href="https://maps.apple.com/?daddr=41.235141,69.207236" target="_blank" class="btn-map-app apple-map-btn">
                 <span class="map-icon">🍏</span>
                 <div class="map-btn-meta">
                   <strong>Apple Maps orqali ochish</strong>
@@ -509,7 +509,7 @@ class App {
 
     if (locCopy) {
       locCopy.addEventListener('click', () => {
-        const text = 'Toshkent shahri, Chilonzor tumani, 9-mavze, 12-bino (Any3D Ustaxonasi)';
+        const text = 'Toshkent shahri, Sergeli tumani, Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy (Any3D Ustaxonasi, Lokatsiya: 41.235141, 69.207236)';
         navigator.clipboard.writeText(text).then(() => {
           locCopy.textContent = '✅ Manzil nusxalandi!';
           setTimeout(() => {
