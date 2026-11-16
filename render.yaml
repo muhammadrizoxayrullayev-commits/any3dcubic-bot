@@ -12,6 +12,10 @@ services:
       - key: PORT
         value: 10000
       - key: TELEGRAM_BOT_TOKEN
-        sync: false
+        value: 9101464035:AAGwpN8Yb-1Ey2eQZ7hvhj3Y1_jM7uHUkLI
+      - key: EXCLUSIVE_ADMIN_CHAT_ID
+        value: "8929216064"
+      - key: EXCLUSIVE_ADMIN_USERNAME
+        value: any3DCubicc
       - key: WEB_APP_URL
         value: https://muhammadrizoxayrullayev-commits.github.io/t3d/
