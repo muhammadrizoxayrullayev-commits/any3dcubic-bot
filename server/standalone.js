@@ -285,7 +285,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const { productId, productName, priceUZS, customerName, customerPhone, customerTelegram, deliveryAddress, orderNotes } = body;
       
-      const orderId = '#SHOP-' + Math.floor(1000 + Math.random() * 9000);
+      const orderId = '#3D-' + Math.floor(1000 + Math.random() * 9000);
       const cleanPhone = (customerPhone || '').replace(/[^0-9+]/g, '');
 
       const shopOrder = {
@@ -294,12 +294,12 @@ const server = http.createServer(async (req, res) => {
         customerPhone: customerPhone || 'Kiritilmagan',
         customerTelegram: customerTelegram || '',
         deliveryAddress: deliveryAddress || '',
-        orderTypeTitle: `🛍️ Do‘kon: ${productName || 'Creality Uskunasi'}`,
-        material: 'Original Creality',
+        orderTypeTitle: `💎 3D Model: ${productName || 'Creality Cloud Modeli'}`,
+        material: 'Yuqori aniqlikdagi 3D Bosma (PLA/PETG/Silk)',
         quantity: 1,
         grandTotal: `${Number(priceUZS || 0).toLocaleString('uz-UZ').replace(/,/g, ' ')} so‘m`,
-        turnaround: 'Tezkor yetkazish',
-        deliveryMethodTitle: '🛵 Kuryer / Toshkent omboridan',
+        turnaround: '1-2 kun ichida tayyor',
+        deliveryMethodTitle: '🛵 Yetkazib berish / Ustaxonadan olib ketish',
         orderNotes: orderNotes || '',
         status: 'pending',
         createdAt: new Date().toISOString()

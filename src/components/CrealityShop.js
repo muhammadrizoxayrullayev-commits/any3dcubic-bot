@@ -59,222 +59,283 @@ export class CrealityShop {
         const data = await res.json();
         if (data.ok && Array.isArray(data.products) && data.products.length > 0) {
           this.products = data.products;
-          localStorage.setItem('cached_products', JSON.stringify(this.products));
+          localStorage.setItem('cached_models_v2', JSON.stringify(this.products));
           return;
         }
       }
     } catch (e) {
-      console.warn('API orqali mahsulotlarni olishda ogohlantirish, keshdan tekshirilmoqda...');
+      console.warn('API orqali modellarni olishda ogohlantirish, keshdan tekshirilmoqda...');
     }
 
     // LocalStorage fallback
     try {
-      const cached = JSON.parse(localStorage.getItem('cached_products') || '[]');
+      const cached = JSON.parse(localStorage.getItem('cached_models_v2') || '[]');
       if (cached.length > 0) {
         this.products = cached;
         return;
       }
     } catch (e) {}
 
-    // Agar kesh ham bo'sh bo'lsa default Creality mahsulotlari
-    this.products = this.getDefaultProducts();
-    localStorage.setItem('cached_products', JSON.stringify(this.products));
+    // Agar kesh bo'sh bo'lsa default Creality modellari
+    this.products = this.getDefaultModels();
+    localStorage.setItem('cached_models_v2', JSON.stringify(this.products));
   }
 
-  getDefaultProducts() {
+  getDefaultModels() {
     return [
       {
-        id: "creality-k1-max",
-        category: "printers",
-        categoryTitle: "3D Printerlar",
-        name: "Creality K1 Max Flagship AI",
-        subtitle: "Yuqori tezlikdagi CoreXY, Dual LiDAR & AI Kamera",
-        priceUZS: 10800000,
-        priceUSD: 850,
-        oldPriceUZS: 11900000,
-        badge: "🔥 Top Flagman",
-        image: "https://img.crealitycloud.com/product/k1max.png",
-        icon: "🖨️",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/k1-max",
+        id: "model-crystal-dragon",
+        category: "articulated",
+        categoryTitle: "Bo‘g‘inli & Flexi",
+        name: "Crystal Dragon (Print-in-Place)",
+        subtitle: "Bo‘g‘inli harakatlanuvchi billur ajdaho (Yig‘ish talab etilmaydi)",
+        priceUZS: 75000,
+        priceUSD: 6,
+        oldPriceUZS: 95000,
+        badge: "🔥 Dunyo Bo‘yicha #1 Trend",
+        icon: "🐉",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/popular",
         inStock: true,
-        stockStatus: "Omborda mavjud (Toshkent)",
+        stockStatus: "Ustaxonada tayyor (Chilonzor)",
         specs: [
-          "Bosish tezligi: 600 mm/s (Tezlanish: 20 000 mm/s²)",
-          "Bosma hajmi: 300 × 300 × 300 mm",
-          "AI LiDAR & 1080p AI Kamera",
-          "Issiq stol: 120°C | Ekstruder: 300°C"
-        ]
+          "Texnologiya: Print-in-Place (Stoldan to‘liq harakatlanuvchi chiqadi)",
+          "Vazni: ~110 gramm | O‘lchami: Uzunligi 45 sm",
+          "Tavsiya material: Ipaksimon Silk PLA (Kamalak / Oltin)",
+          "Chop etish vaqti: ~5.5 soat (Bambu Lab / Creality K1)"
+        ],
+        description: "Creality Cloud platformasidagi eng mashhur 3D model. Butun tanasi bo‘g‘inli, qo‘lda o‘ynash uchun mukammal antistress ajdaho."
       },
       {
-        id: "creality-k1c",
-        category: "printers",
-        categoryTitle: "3D Printerlar",
-        name: "Creality K1C Carbon Fiber Edition",
-        subtitle: "Karbon tola & Muhandislik kompozitlari uchun maxsus",
-        priceUZS: 7500000,
-        priceUSD: 590,
-        oldPriceUZS: 8200000,
-        badge: "⚡ Karbon Pro",
-        image: "https://img.crealitycloud.com/product/k1c.png",
+        id: "model-collapsible-katana",
+        category: "articulated",
+        categoryTitle: "Bo‘g‘inli & Flexi",
+        name: "Teleskopik Yig‘iluvchan Katana Qilichi",
+        subtitle: "Siltaganda 90 sm ga ochiluvchi teleskopik qilich",
+        priceUZS: 85000,
+        priceUSD: 7,
+        oldPriceUZS: 110000,
+        badge: "⚔️ Viral Trend",
+        icon: "🗡️",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/popular",
+        inStock: true,
+        stockStatus: "Ustaxonada tayyor",
+        specs: [
+          "Uzunligi: Yig‘ilganda 24 sm, ochilganda 92 sm",
+          "Qavatlar soni: 5 bo‘g‘inli teleskopik pichoq",
+          "Tavsiya material: Qattiq PETG yoki Hyper PLA",
+          "Chop etish vaqti: ~6 soat"
+        ],
+        description: "Bir siltash bilan ochiluvchi zamonaviy samuray qilichi. Bolalar va kattalar uchun eng qiziqarli interaktiv 3D model."
+      },
+      {
+        id: "model-ironman-bust",
+        category: "characters",
+        categoryTitle: "Figuralar & Anime",
+        name: "Iron Man Mark 85 Kolleksion Büst",
+        subtitle: "Ichki yoritgich (LED) o‘rnatish imkoni bilan",
+        priceUZS: 140000,
+        priceUSD: 11,
+        oldPriceUZS: 180000,
+        badge: "🦸 Marvel Original",
+        icon: "🤖",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/character",
+        inStock: true,
+        stockStatus: "Tayyorlanish: 24 soat",
+        specs: [
+          "Balandligi: 18 sm | Og‘irligi: ~180 gramm",
+          "Detalizatsiya: 0.12 mm Ultra-aniq qatlam",
+          "Ichki ko‘z qismlari shaffof PETG (LED o‘rnatishga mos)"
+        ],
+        description: "Marvel koinotining eng sevimli qahramoni b银sti. Ish stoli, javon va sovg‘a uchun juda nufuzli ko‘rinishga ega."
+      },
+      {
+        id: "model-cyberpunk-samurai",
+        category: "characters",
+        categoryTitle: "Figuralar & Anime",
+        name: "Kiberpank Mecha Samuray Haykali",
+        subtitle: "Futuristik qurollangan robot-jangchi haykalchasi",
+        priceUZS: 125000,
+        priceUSD: 10,
+        oldPriceUZS: 160000,
+        badge: "⚡ Kiber Dizayn",
         icon: "🦾",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/k1c",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/character",
         inStock: true,
-        stockStatus: "Omborda mavjud (Toshkent)",
+        stockStatus: "Tayyorlanish: 24 soat",
         specs: [
-          "Bosish tezligi: 600 mm/s",
-          "Bosma hajmi: 220 × 220 × 250 mm",
-          "Qattiqlashtirilgan po‘lat nozzl (PLA-CF, PETG-CF)",
-          "To‘liq metall korpus va AI kamera"
-        ]
+          "Balandligi: 16 sm | Vazni: ~140 gramm",
+          "Modulli yig‘ish: Qilich va orqa qanotlar ajraladi",
+          "Material: Mat qora PLA Pro + Neonn ranglar"
+        ],
+        description: "Kiberpank uslubidagi robot-samuray. Kompyuter stoli va geymerlar xonasi uchun ajoyib aksessuar."
       },
       {
-        id: "creality-ender-3-v3",
-        category: "printers",
-        categoryTitle: "3D Printerlar",
-        name: "Creality Ender-3 V3 (CoreXZ)",
-        subtitle: "Inqilobiy CoreXZ kinematikasi, 600 mm/s tezlik",
-        priceUZS: 4800000,
-        priceUSD: 380,
-        oldPriceUZS: 5300000,
-        badge: "🏆 2026 Bestseller",
-        image: "https://img.crealitycloud.com/product/ender3v3.png",
-        icon: "⚡",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/ender-3-v3",
+        id: "model-planetary-gearbox",
+        category: "mechanical",
+        categoryTitle: "Muhandislik & Avto",
+        name: "Planetar Reduktor & Tishli Uzatma",
+        subtitle: "Aylanuvchi sun'iy yo‘ldosh shesternalar mexanizmi",
+        priceUZS: 65000,
+        priceUSD: 5,
+        oldPriceUZS: 85000,
+        badge: "⚙️ Muhandislik",
+        icon: "⚙️",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/tools",
         inStock: true,
-        stockStatus: "Omborda mavjud (Toshkent)",
+        stockStatus: "Ustaxonada tayyor",
         specs: [
-          "Bosish tezligi: 600 mm/s",
-          "Bosma hajmi: 220 × 220 × 250 mm",
-          "CoreXZ tizimi (Tebranishsiz aniq qatlamlar)",
-          "Avtomatik kalibrovka (1 bosish)"
-        ]
+          "Reduksiya koeffitsienti: 4:1 nisbat",
+          "Mexanik podshipniklar va shesternalar 100% 3D bosilgan",
+          "Tavsiya material: Ishqalanishga chidamli PETG / ABS"
+        ],
+        description: "Avtomobil va stanoklardagi tishli uzatmalar qanday ishlashini amalda ko‘rsatuvchi ajoyib mexanik model."
       },
       {
-        id: "creality-ender-3-v3-ke",
-        category: "printers",
-        categoryTitle: "3D Printerlar",
-        name: "Creality Ender-3 V3 KE (Smart OS)",
-        subtitle: "Klipper asosli Creality OS, Sensorli ekran & 500 mm/s",
-        priceUZS: 3600000,
-        priceUSD: 285,
-        oldPriceUZS: 3950000,
-        badge: "⭐ Xalq Tanlovi",
-        image: "https://img.crealitycloud.com/product/ender3v3ke.png",
-        icon: "📱",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/ender-3-v3-ke",
+        id: "model-fpv-drone-frame",
+        category: "mechanical",
+        categoryTitle: "Muhandislik & Avto",
+        name: "5 Dyuymli FPV Dron Romi & Korpus",
+        subtitle: "Yengil va zarbaga o‘ta chidamli aerodinamik karkas",
+        priceUZS: 95000,
+        priceUSD: 7.5,
+        oldPriceUZS: 130000,
+        badge: "🚁 Dronlar",
+        icon: "🛸",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/tools",
         inStock: true,
-        stockStatus: "Omborda mavjud (Toshkent)",
+        stockStatus: "Tayyorlanish: 24 soat",
         specs: [
-          "Bosish tezligi: 500 mm/s",
-          "Bosma hajmi: 220 × 220 × 240 mm",
-          "Wi-Fi masofadan boshqaruv & Klipper",
-          "CR Touch avtomatik nivelirlash"
-        ]
+          "Og‘irligi: atigi 68 gramm (Ultra-yengil)",
+          "Motor o‘rnatish: 16×16 mm va 19×19 mm standartlar",
+          "Tavsiya material: PETG-Carbon yoki qattiq Karbon tola"
+        ],
+        description: "Dron ixlosmandlari uchun zarbaga bardoshli maxsus konstruksiya. Yiqilganda sinmaydigan elastik komponentlar bilan."
       },
       {
-        id: "creality-hyper-pla-1kg",
-        category: "filaments",
-        categoryTitle: "Filamentlar & Smola",
-        name: "Creality Hyper Series PLA (1 kg)",
-        subtitle: "600 mm/s yuqori tezlikka moslashtirilgan original filament",
-        priceUZS: 240000,
-        priceUSD: 19,
-        oldPriceUZS: 270000,
-        badge: "🚀 600mm/s Tezkor",
-        image: "https://img.crealitycloud.com/product/hyperpla.png",
-        icon: "🧵",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/hyper-pla",
-        inStock: true,
-        stockStatus: "Omborda barcha ranglar mavjud",
-        specs: [
-          "Og‘irligi: 1 kg netto | Diametri: 1.75 mm",
-          "Tezlik: 50 – 600 mm/s gacha oqadi",
-          "Ranglar: Oq, Qora, Kulrang, Qizil, Ko‘k"
-        ]
-      },
-      {
-        id: "creality-cr-petg-1kg",
-        category: "filaments",
-        categoryTitle: "Filamentlar & Smola",
-        name: "Creality CR-PETG Yuqori Bardoshli (1 kg)",
-        subtitle: "Mexanik mustahkam, namlikka va quyoshga chidamli plastik",
-        priceUZS: 220000,
-        priceUSD: 17.5,
-        oldPriceUZS: 250000,
-        badge: "🛡️ Mustahkam",
-        image: "https://img.crealitycloud.com/product/petg.png",
-        icon: "🔩",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/cr-petg",
+        id: "model-voronoi-moon-lamp",
+        category: "decor",
+        categoryTitle: "Uy Bezagi & Lampalar",
+        name: "Oy Shaklidagi Tungi Lampa (3D Moon Lamp)",
+        subtitle: "Oy kraterlari aniq relyefi va yog‘och taglik stendi bilan",
+        priceUZS: 110000,
+        priceUSD: 9,
+        oldPriceUZS: 145000,
+        badge: "🌕 Top Sovg‘a",
+        icon: "🏮",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/hobby",
         inStock: true,
         stockStatus: "Omborda mavjud",
         specs: [
-          "Og‘irligi: 1 kg | Diametri: 1.75 mm",
-          "Erish harorati: 230°C – 250°C",
-          "Kronshteynlar, korpuslar, texnik detallar uchun"
-        ]
+          "Diametri: 15 sm | Vazni: ~130 gramm",
+          "NASA sun'iy yo‘ldosh topografik xaritasi asosida chizilgan",
+          "Ichiga LED lampochka yoki telefon chirog‘i tushadi"
+        ],
+        description: "Kechasi xonada yoqilganda xuddi haqiqiy to‘lin oydek mayin nur sochadi. Yaqinlar uchun eng nafis sovg‘a."
       },
       {
-        id: "creality-space-pi-dryer",
-        category: "accessories",
-        categoryTitle: "Aksessuarlar & Zapchastlar",
-        name: "Creality Space Pi Filament Dryer",
-        subtitle: "Filamentni 360° issiq havo bilan quritish kamerasi (PTC 80W)",
-        priceUZS: 680000,
-        priceUSD: 54,
-        oldPriceUZS: 780000,
-        badge: "♨️ Top Aksessuar",
-        image: "https://img.crealitycloud.com/product/dryer.png",
-        icon: "📦",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/space-pi-dryer",
+        id: "model-controller-stand",
+        category: "decor",
+        categoryTitle: "Uy Bezagi & Lampalar",
+        name: "PlayStation / Xbox Geympad va Naushnik Stendi",
+        subtitle: "Kibersport va stolda tartib o‘rnatuvchi universal taglik",
+        priceUZS: 70000,
+        priceUSD: 5.5,
+        oldPriceUZS: 90000,
+        badge: "🎮 Geymerlar Uchun",
+        icon: "🎧",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/hobby",
         inStock: true,
         stockStatus: "Omborda mavjud",
         specs: [
-          "Harorat: 45°C – 70°C real vaqtda",
-          "Sensorli ekran va taymer",
-          "Namlik pufakchalarini yo‘qotadi"
-        ]
+          "Sig‘imi: 2 ta joystik (PS5 / Xbox) + 1 ta katta naushnik",
+          "Pastki qismida og‘irlik markazi va sirpanmas taglik",
+          "Material: Qattiq PETG Pro"
+        ],
+        description: "Geympad va naushniklaringiz stol ustida sochilib yotmaydi. Tartibli va zamonaviy ko‘rinish bag‘ishlaydi."
       },
       {
-        id: "creality-nebula-smart-kit",
-        category: "accessories",
-        categoryTitle: "Aksessuarlar & Zapchastlar",
-        name: "Creality Nebula Smart Kit (Display + AI Cam)",
-        subtitle: "Ender-3 printerlarini tezlashtiruvchi Smart kamera va ekran",
-        priceUZS: 890000,
-        priceUSD: 70,
-        oldPriceUZS: 990000,
-        badge: "👁️ Smart Upgrade",
-        image: "https://img.crealitycloud.com/product/nebula.png",
-        icon: "📷",
-        crealityUrl: "https://www.crealitycloud.com/ru/product/nebula-smart-kit",
+        id: "model-tashkent-tv-tower",
+        category: "architecture",
+        categoryTitle: "Arxitektura Maketlari",
+        name: "Toshkent Teleminorasi Arxitektura Maketi",
+        subtitle: "375 metrli mashhur teleminoraning 1:1000 masshtabdagi nusxasi",
+        priceUZS: 95000,
+        priceUSD: 7.5,
+        oldPriceUZS: 125000,
+        badge: "🇺🇿 Toshkent Belgisi",
+        icon: "🗼",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/architecture",
+        inStock: true,
+        stockStatus: "Tayyorlanish: 24 soat",
+        specs: [
+          "Balandligi: 37.5 sm | Masshtab: 1:1000",
+          "Metallik kumush va qizil/oq panjara poydevor",
+          "To‘rli konstruksiya to‘liq nozik qatlamda chiqarilgan"
+        ],
+        description: "Markaziy Osiyodagi eng baland inshootlardan birining aniq arxitekturaviy nusxasi. Poytaxtimiz ramzi."
+      },
+      {
+        id: "model-modern-villa-cad",
+        category: "architecture",
+        categoryTitle: "Arxitektura Maketlari",
+        name: "Zamonaviy Hay-Tek Villa Maketi (Ichki reja bilan)",
+        subtitle: "Qavatma-qavat ochiluvchi 3D xonadon interyeri va hovli",
+        priceUZS: 160000,
+        priceUSD: 13,
+        oldPriceUZS: 220000,
+        badge: "🏛️ Arxitektor Tanlovi",
+        icon: "🏡",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/architecture",
+        inStock: true,
+        stockStatus: "Tayyorlanish: 24-48 soat",
+        specs: [
+          "O‘lchamlari: 22 × 18 sm poydevor, 2 qavatli",
+          "Tomi va 2-qavati ochilib, ichki mebellar ko‘rinadi",
+          "Material: Oq mat arxitektura plastmassasi"
+        ],
+        description: "Qurilish kompaniyalari, me'morlar va dizaynerlar uchun loyihani mijozga real ko‘rsatish vositasi."
+      },
+      {
+        id: "model-spiral-voronoi-vase",
+        category: "decor",
+        categoryTitle: "Uy Bezagi & Lampalar",
+        name: "Spiral Voronoi Geometrik Gultuvak & Vaza",
+        subtitle: "Parametrik dizayndagi zamonaviy guldon",
+        priceUZS: 55000,
+        priceUSD: 4.5,
+        oldPriceUZS: 75000,
+        badge: "🌿 Eko Dizayn",
+        icon: "🏺",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/hobby",
         inStock: true,
         stockStatus: "Omborda mavjud",
         specs: [
-          "4.3 dyuym sensorli IPS displey",
-          "HD AI Kamera (Time-lapse video va masofaviy kuzatuv)",
-          "Wi-Fi & Creality Cloud integratsiyasi"
-        ]
+          "Balandligi: 18 sm | Diametri: 11 sm",
+          "Vaza rejimida (Vase Mode) bir tekis uzluksiz chiziqda bosiladi",
+          "Ranglar: Zumrad yashil, Qora mat, Oltin rang"
+        ],
+        description: "Matematik Voronoi algoritmlari bilan yaratilgan nafis gultuvak. Xonaga zamonaviy interyer bag‘ishlaydi."
       },
       {
-        id: "creality-engineering-stl-bundle",
-        category: "models",
-        categoryTitle: "3D Modellar & STL",
-        name: "Creality Cloud Premium: Muhandislik STL Arxiv Paketi",
-        subtitle: "500+ sertifikatlangan CAD chizmalar, shesternalar, kronshteynlar",
-        priceUZS: 150000,
-        priceUSD: 12,
-        oldPriceUZS: 250000,
-        badge: "📁 500+ Model",
-        image: "https://img.crealitycloud.com/product/cadbundle.png",
-        icon: "📐",
-        crealityUrl: "https://www.crealitycloud.com/ru/model-category/engineering",
+        id: "model-flexi-rex",
+        category: "articulated",
+        categoryTitle: "Bo‘g‘inli & Flexi",
+        name: "Flexi-Rex (Harakatlanuvchi Tiranozavr)",
+        subtitle: "Butun tanasi erkin tebranuvchi mashhur dinozavr",
+        priceUZS: 35000,
+        priceUSD: 3,
+        oldPriceUZS: 50000,
+        badge: "🦖 Klassik Flexi",
+        icon: "🦖",
+        crealityUrl: "https://www.crealitycloud.com/ru/model-category/popular",
         inStock: true,
-        stockStatus: "Elektron formatda darhol yuklab olish",
+        stockStatus: "Ustaxonada tayyor",
         specs: [
-          "Fayl formatlari: STL, STEP, OBJ, 3MF",
-          "To‘liq chop etishga tayyor Creality Print profillari",
-          "Tijoriy ishlab chiqarish ruxsati bilan"
-        ]
+          "Uzunligi: 14 sm | Qalinligi: 15 mm",
+          "Bosish vaqti: atigi 1.5 soat",
+          "Qo‘lda yumshoq tebranadi, tik tura oladi"
+        ],
+        description: "3D bosma olamining eng qadimiy va eng mashhur ramzi. Stolda turishi va o‘ynash uchun ajoyib qulaylik."
       }
     ];
   }
@@ -303,29 +364,30 @@ export class CrealityShop {
           <div class="shop-hero-glow"></div>
           <div class="shop-hero-content">
             <div class="shop-brand-row">
-              <span class="shop-creality-badge">CREALITY CLOUD • RASMIY HAMKOR</span>
+              <span class="shop-creality-badge">CREALITY CLOUD • TOP 3D MODELLAR</span>
               <div class="shop-admin-indicator">
                 ${this.isAdmin ? `
-                  <span class="admin-unlocked-badge">👑 Admin Rejimi Faol (PIN: 083010)</span>
-                  <button type="button" class="btn-shop-add-prod" id="btn-add-product">➕ Yangi Mahsulot</button>
+                  <span class="admin-unlocked-badge">👑 Admin Rejimi (PIN: 083010)</span>
+                  <button type="button" class="btn-shop-add-prod" id="btn-add-product">➕ Yangi Model Qo‘shish</button>
                 ` : `
                   <button type="button" class="btn-shop-admin-login" id="btn-shop-pin-login">
-                    🔐 Narxlarni Boshqarish (Admin)
+                    🔐 Narxlarni Boshqarish (Admin PIN)
                   </button>
                 `}
               </div>
             </div>
 
-            <h1 class="shop-title">Creality 3D Do‘koni & Uskunalar Markazi</h1>
+            <h1 class="shop-title">Creality Cloud 3D Modellar & STL Katalogi</h1>
             <p class="shop-desc">
-              Dunyoga mashhur <b>Creality Cloud</b> (<a href="https://www.crealitycloud.com/ru" target="_blank" class="creality-link">www.crealitycloud.com/ru</a>) platformasining original 3D printerlari, tezyurar Hyper PLA filamentlari, aksessuarlari va eksklyuziv 3D modellari Toshkent omborida.
+              Dunyoga mashhur <b>Creality Cloud</b> (<a href="https://www.crealitycloud.com/ru" target="_blank" class="creality-link">www.crealitycloud.com/ru</a>) platformasidagi eng mashhur 3D modellar, harakatlanuvchi Flexi o‘yinchoqlar, qahramonlar, muhandislik detallari va uy bezaklari. 
+              <b>Istalgan modelni tanlang — Chilonzor ustaxonamizda professional 3D printerda sifatli chiqarib beramiz!</b>
             </p>
 
             <div class="shop-stats-strip">
-              <div class="s-stat"><span class="s-val">100%</span><span class="s-lbl">Original Creality</span></div>
-              <div class="s-stat"><span class="s-val">600 mm/s</span><span class="s-lbl">Maksimal Tezlik</span></div>
+              <div class="s-stat"><span class="s-val">500+</span><span class="s-lbl">Mashhur Modellar</span></div>
+              <div class="s-stat"><span class="s-val">0.12 mm</span><span class="s-lbl">Ultra-Aniq Qatlam</span></div>
+              <div class="s-stat"><span class="s-val">24 Soat</span><span class="s-lbl">Tayyor Bo‘lish Vaqti</span></div>
               <div class="s-stat"><span class="s-val">Toshkent</span><span class="s-lbl">Tezkor Yetkazish</span></div>
-              <div class="s-stat"><span class="s-val">Kafolat</span><span class="s-lbl">Rasmiy Texnik Ko‘mak</span></div>
             </div>
           </div>
         </div>
@@ -334,51 +396,54 @@ export class CrealityShop {
         <div class="shop-toolbar">
           <div class="shop-categories-pills">
             <button type="button" class="cat-pill ${this.currentCategory === 'all' ? 'active' : ''}" data-cat="all">
-              🌐 Barchasi (${this.products.length})
+              🌐 Barcha Modellar (${this.products.length})
             </button>
-            <button type="button" class="cat-pill ${this.currentCategory === 'printers' ? 'active' : ''}" data-cat="printers">
-              🖨️ 3D Printerlar (${this.products.filter(p => p.category === 'printers').length})
+            <button type="button" class="cat-pill ${this.currentCategory === 'articulated' ? 'active' : ''}" data-cat="articulated">
+              🐉 Bo‘g‘inli & Flexi (${this.products.filter(p => p.category === 'articulated').length})
             </button>
-            <button type="button" class="cat-pill ${this.currentCategory === 'filaments' ? 'active' : ''}" data-cat="filaments">
-              🧵 Filamentlar & Smola (${this.products.filter(p => p.category === 'filaments').length})
+            <button type="button" class="cat-pill ${this.currentCategory === 'characters' ? 'active' : ''}" data-cat="characters">
+              🦸 Figuralar & Anime (${this.products.filter(p => p.category === 'characters').length})
             </button>
-            <button type="button" class="cat-pill ${this.currentCategory === 'accessories' ? 'active' : ''}" data-cat="accessories">
-              ⚙️ Aksessuarlar (${this.products.filter(p => p.category === 'accessories').length})
+            <button type="button" class="cat-pill ${this.currentCategory === 'mechanical' ? 'active' : ''}" data-cat="mechanical">
+              ⚙️ Muhandislik & Avto (${this.products.filter(p => p.category === 'mechanical').length})
             </button>
-            <button type="button" class="cat-pill ${this.currentCategory === 'models' ? 'active' : ''}" data-cat="models">
-              📐 3D Modellar & STL (${this.products.filter(p => p.category === 'models').length})
+            <button type="button" class="cat-pill ${this.currentCategory === 'decor' ? 'active' : ''}" data-cat="decor">
+              🏠 Uy Bezagi & Lampalar (${this.products.filter(p => p.category === 'decor').length})
+            </button>
+            <button type="button" class="cat-pill ${this.currentCategory === 'architecture' ? 'active' : ''}" data-cat="architecture">
+              🏛️ Arxitektura Maketlari (${this.products.filter(p => p.category === 'architecture').length})
             </button>
           </div>
 
           <div class="shop-search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="shop-search-input" placeholder="Mahsulot qidirish (K1 Max, Ender-3, PLA, Nozzl...)" value="${this.searchQuery}">
+            <input type="text" id="shop-search-input" placeholder="Model qidirish (Ajdaho, Katana, Iron Man, Reduktor, Lampa...)" value="${this.searchQuery}">
             ${this.searchQuery ? '<button type="button" class="btn-clear-search" id="btn-clear-search">✕</button>' : ''}
           </div>
         </div>
 
-        <!-- Mahsulotlar Ro'yxati (Grid) -->
+        <!-- Modellar Ro'yxati (Grid) -->
         <div class="shop-products-grid">
           ${filtered.length === 0 ? `
             <div class="shop-empty-state">
               <div class="empty-icon">🔍</div>
-              <h3>Mahsulot topilmadi</h3>
+              <h3>Model topilmadi</h3>
               <p>Qidiruv so‘rovingizni o‘zgartiring yoki boshqa toifani tanlang.</p>
-              <button type="button" class="btn-reset-filters" id="btn-reset-filters">Barcha Mahsulotlarni Ko‘rsatish</button>
+              <button type="button" class="btn-reset-filters" id="btn-reset-filters">Barcha Modellarni Ko‘rsatish</button>
             </div>
           ` : filtered.map(p => `
             <div class="product-card ${p.category}" data-product-id="${p.id}">
               <div class="product-card-top">
-                <span class="product-badge">${p.badge || 'Creality Original'}</span>
+                <span class="product-badge">${p.badge || 'Creality Model'}</span>
                 <span class="stock-pill ${p.inStock ? 'in-stock' : 'pre-order'}">
-                  ${p.inStock ? '🟢 Mavjud' : '🟡 Buyurtmaga'}
+                  ${p.inStock ? '🟢 Ustaxonada tayyor' : '⏱️ 24 Soatda tayyor'}
                 </span>
               </div>
 
-              <!-- Mahsulot Vizual Qutisi -->
+              <!-- Model Vizual Qutisi -->
               <div class="product-visual-box">
-                <div class="product-icon-frame">${p.icon || '🖨️'}</div>
-                <div class="product-category-tag">${p.categoryTitle || 'Creality'}</div>
+                <div class="product-icon-frame">${p.icon || '💎'}</div>
+                <div class="product-category-tag">${p.categoryTitle || 'Creality 3D'}</div>
               </div>
 
               <div class="product-info-body">
@@ -396,15 +461,15 @@ export class CrealityShop {
                     <span class="price-val">${this.formatPrice(p.priceUZS, p.priceUSD)}</span>
                     ${p.oldPriceUZS ? `<span class="price-old">${this.formatPrice(p.oldPriceUZS, Math.round(p.oldPriceUZS / 12700))}</span>` : ''}
                   </div>
-                  <span class="stock-status-text">${p.stockStatus || (p.inStock ? 'Omborda mavjud' : 'Yetkazish: 3-5 kun')}</span>
+                  <span class="stock-status-text">🖨️ ${p.stockStatus || '3D chop etish narxi'}</span>
                 </div>
 
                 <!-- Harakat Tugmalari -->
                 <div class="product-card-actions">
                   <button type="button" class="btn-order-product" data-order-id="${p.id}">
-                    🛒 Buyurtma Berish
+                    🖨️ Chop Etishga Buyurtma
                   </button>
-                  <a href="${p.crealityUrl || 'https://www.crealitycloud.com/ru'}" target="_blank" class="btn-view-creality" title="Creality Cloud rasmiy sahifasini ochish">
+                  <a href="${p.crealityUrl || 'https://www.crealitycloud.com/ru'}" target="_blank" class="btn-view-creality" title="Creality Cloud original sahifasi">
                     🌐 Creality Cloud
                   </a>
                 </div>
@@ -428,8 +493,8 @@ export class CrealityShop {
               <div class="s-modal-title">
                 <span class="s-m-icon">✏️</span>
                 <div>
-                  <h3 id="edit-prod-title">Narxni Tahrirlash</h3>
-                  <small id="edit-prod-sub">Faqat bosh administrator uchun</small>
+                  <h3 id="edit-prod-title">Model Narxini Tahrirlash</h3>
+                  <small id="edit-prod-sub">Faqat bosh administrator uchun (PIN: 083010)</small>
                 </div>
               </div>
               <button type="button" class="shop-modal-close" id="btn-close-edit">✕</button>
@@ -439,38 +504,38 @@ export class CrealityShop {
               <input type="hidden" id="edit-prod-id" value="">
               
               <div class="form-field">
-                <label>Mahsulot Nomi:</label>
+                <label>Model Nomi:</label>
                 <input type="text" id="edit-input-name" required>
               </div>
 
               <div class="form-row-dual">
                 <div class="form-field">
-                  <label>Narxi (SO‘M da) *</label>
-                  <input type="number" id="edit-input-uzs" placeholder="10800000" required>
+                  <label>Chop Etish Narxi (SO‘M da) *</label>
+                  <input type="number" id="edit-input-uzs" placeholder="75000" required>
                 </div>
                 <div class="form-field">
                   <label>Narxi (USD da) *</label>
-                  <input type="number" id="edit-input-usd" placeholder="850" required>
+                  <input type="number" id="edit-input-usd" placeholder="6" required>
                 </div>
               </div>
 
               <div class="form-row-dual">
                 <div class="form-field">
                   <label>Maxsus Nishon (Badge):</label>
-                  <input type="text" id="edit-input-badge" placeholder="🔥 Top Flagman">
+                  <input type="text" id="edit-input-badge" placeholder="🔥 #1 Trend">
                 </div>
                 <div class="form-field">
-                  <label>Ombor Holati:</label>
+                  <label>Holati:</label>
                   <select id="edit-select-stock">
-                    <option value="true">🟢 Omborda mavjud</option>
-                    <option value="false">🟡 Buyurtmaga (3-5 kun)</option>
+                    <option value="true">🟢 Ustaxonada tayyor</option>
+                    <option value="false">⏱️ 24 Soatda tayyor</option>
                   </select>
                 </div>
               </div>
 
               <div class="form-field">
-                <label>Ombor Holati Matni:</label>
-                <input type="text" id="edit-input-stock-status" placeholder="Omborda mavjud (Toshkent)">
+                <label>Holat Matni:</label>
+                <input type="text" id="edit-input-stock-status" placeholder="Ustaxonada tayyor (Chilonzor)">
               </div>
 
               <div class="shop-modal-actions">
@@ -485,15 +550,15 @@ export class CrealityShop {
           </div>
         </div>
 
-        <!-- 🛒 BUYURTMA BERISH MODALI (CHECKOUT) -->
+        <!-- 🛒 CHOP ETISHGA BUYURTMA BERISH MODALI -->
         <div class="shop-modal-backdrop" id="shop-order-modal" style="display: none;">
           <div class="shop-modal-card">
             <div class="shop-modal-header">
               <div class="s-modal-title">
-                <span class="s-m-icon">🛍️</span>
+                <span class="s-m-icon">🖨️</span>
                 <div>
-                  <h3 id="order-modal-prod-name">Mahsulotga Buyurtma</h3>
-                  <small id="order-modal-prod-price">Toshkent bo‘yicha tezkor yetkazish</small>
+                  <h3 id="order-modal-prod-name">Modelni Chop Etishga Buyurtma</h3>
+                  <small id="order-modal-prod-price">Toshkent 3D Ustaxonasi (Chilonzor)</small>
                 </div>
               </div>
               <button type="button" class="shop-modal-close" id="btn-close-order">✕</button>
@@ -504,8 +569,8 @@ export class CrealityShop {
               
               <div class="form-row-dual">
                 <div class="form-field">
-                  <label>Ismingiz *</label>
-                  <input type="text" id="shop-cust-name" placeholder="Ismingizni yozing" required>
+                  <label>Ism va Familiyangiz *</label>
+                  <input type="text" id="shop-cust-name" placeholder="Ismingizni kiriting" required>
                 </div>
                 <div class="form-field">
                   <label>Telefon Raqamingiz *</label>
@@ -520,29 +585,29 @@ export class CrealityShop {
                 </div>
                 <div class="form-field">
                   <label>Yetkazib Berish Manzili:</label>
-                  <input type="text" id="shop-cust-addr" placeholder="Toshkent shahri yoki viloyat">
+                  <input type="text" id="shop-cust-addr" placeholder="Chilonzor yoki Toshkent bo‘yicha">
                 </div>
               </div>
 
               <div class="form-field">
-                <label>Qo‘shimcha Izoh:</label>
-                <textarea id="shop-cust-notes" rows="2" placeholder="Rang yoki qulay vaqt..."></textarea>
+                <label>Rang yoki Qayta Ishlash Istagi (Ixtiyoriy):</label>
+                <textarea id="shop-cust-notes" rows="2" placeholder="Masalan: Ipaksimon oltin rangda yoki qora mat PLA da chiqarib bering"></textarea>
               </div>
 
               <div class="order-summary-box">
                 <div class="o-sum-row">
-                  <span>Tanlangan Mahsulot:</span>
+                  <span>Tanlangan Model:</span>
                   <strong id="summary-prod-name">-</strong>
                 </div>
                 <div class="o-sum-row total">
-                  <span>To‘lov Summasi:</span>
-                  <strong id="summary-prod-price" style="color: #00f0ff;">-</strong>
+                  <span>Chop Etish To‘lovi:</span>
+                  <strong id="summary-prod-price" style="color: #00d26a;">-</strong>
                 </div>
               </div>
 
               <div class="shop-modal-actions">
                 <button type="submit" class="btn-submit-shop-order" id="btn-submit-shop-order">
-                  🚀 Buyurtmani Tasdiqlash
+                  🚀 Chop Etishga Tasdiqlash
                 </button>
                 <button type="button" class="btn-cancel-edit" id="btn-cancel-shop-order">
                   Bekor Qilish
@@ -555,26 +620,26 @@ export class CrealityShop {
               <h3>Buyurtmangiz Qabul Qilindi!</h3>
               <p id="shop-succ-num" class="succ-order-code">#SHOP-5452</p>
               <p class="succ-desc">
-                Buyurtmangiz Toshkent 3D Ustaxonasi bosh administratori (<b>@any3DCubicc</b>) ga yetkazildi. Tez orada siz bilan bog‘lanamiz!
+                Model Toshkent 3D Ustaxonasi navbatiga qo‘yildi va bosh administratorga (<b>@any3DCubicc</b>) yetkazildi. Tez orada dastgohda chop etish boshlanadi!
               </p>
               <div class="succ-btns">
                 <a href="https://t.me/Any3dCubic_bot" target="_blank" class="btn-succ-bot">
                   🤖 Botda Holatni Ko‘rish (@Any3dCubic_bot)
                 </a>
                 <button type="button" class="btn-succ-close" id="btn-succ-close">
-                  Do‘konga Qaytish
+                  Modellar Katalogiga Qaytish
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 🔐 SHOP ADMIN PIN MODAL -->
+        <!-- 🔐 ADMIN PIN MODAL -->
         <div class="shop-modal-backdrop" id="shop-pin-modal" style="display: none;">
           <div class="shop-modal-card pin-card">
             <div class="pin-badge">👑 NARX BOSHQARUVI</div>
             <h3>Admin PIN Kodini Kiriting</h3>
-            <p>Narxlarni tahrirlash huquqi faqat maxfiy PIN kodga ega bosh administratorga berilgan.</p>
+            <p>Model narxlarini tahrirlash huquqi faqat maxfiy PIN kodga ega bosh administratorga berilgan.</p>
             
             <form class="shop-pin-form" id="shop-pin-form" onsubmit="return false;">
               <input type="password" id="shop-pin-input" placeholder="6 xonali PIN" maxlength="10" autofocus>
@@ -610,8 +675,6 @@ export class CrealityShop {
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value;
-        const grid = this.mount.querySelector('.shop-products-grid');
-        // Render faqat gridni yangilashi mumkin, ammo butun komponentni yangilash oson
         this.render();
         const freshInput = this.mount.querySelector('#shop-search-input');
         if (freshInput) {
@@ -638,7 +701,7 @@ export class CrealityShop {
       });
     }
 
-    // 3. Admin PIN orqali kirish
+    // 3. Admin PIN orqali kirish (083010)
     const btnPinLogin = this.mount.querySelector('#btn-shop-pin-login');
     const pinModal = this.mount.querySelector('#shop-pin-modal');
     const pinForm = this.mount.querySelector('#shop-pin-form');
@@ -702,7 +765,7 @@ export class CrealityShop {
           this.mount.querySelector('#edit-input-usd').value = prod.priceUSD || Math.round(prod.priceUZS / 12700);
           this.mount.querySelector('#edit-input-badge').value = prod.badge || '';
           this.mount.querySelector('#edit-select-stock').value = prod.inStock ? 'true' : 'false';
-          this.mount.querySelector('#edit-input-stock-status').value = prod.stockStatus || (prod.inStock ? 'Omborda mavjud' : 'Buyurtmaga');
+          this.mount.querySelector('#edit-input-stock-status').value = prod.stockStatus || (prod.inStock ? 'Ustaxonada tayyor' : 'Tayyorlanish: 24 soat');
           editModal.style.display = 'flex';
         }
       });
@@ -729,7 +792,7 @@ export class CrealityShop {
             inStock: newInStock,
             stockStatus: newStockStatus
           };
-          localStorage.setItem('cached_products', JSON.stringify(this.products));
+          localStorage.setItem('cached_models_v2', JSON.stringify(this.products));
         }
 
         // Serverga saqlash
@@ -768,7 +831,7 @@ export class CrealityShop {
       });
     }
 
-    // 5. Buyurtma berish (Checkout) modalini ochish
+    // 5. Chop etishga buyurtma berish (Checkout)
     const orderBtns = this.mount.querySelectorAll('[data-order-id]');
     const orderModal = this.mount.querySelector('#shop-order-modal');
     const orderForm = this.mount.querySelector('#shop-order-form');
@@ -785,7 +848,7 @@ export class CrealityShop {
           this.activeProductForOrder = prod;
           this.mount.querySelector('#order-hidden-prod-id').value = prod.id;
           this.mount.querySelector('#order-modal-prod-name').textContent = prod.name;
-          this.mount.querySelector('#order-modal-prod-price').textContent = `Narxi: ${this.formatPrice(prod.priceUZS, prod.priceUSD)}`;
+          this.mount.querySelector('#order-modal-prod-price').textContent = `Chop etish narxi: ${this.formatPrice(prod.priceUZS, prod.priceUSD)}`;
           this.mount.querySelector('#summary-prod-name').textContent = prod.name;
           this.mount.querySelector('#summary-prod-price').textContent = this.formatPrice(prod.priceUZS, prod.priceUSD);
           
@@ -807,7 +870,7 @@ export class CrealityShop {
         const custAddr = this.mount.querySelector('#shop-cust-addr')?.value || '';
         const custNotes = this.mount.querySelector('#shop-cust-notes')?.value || '';
 
-        const orderCode = '#SHOP-' + Math.floor(1000 + Math.random() * 9000);
+        const orderCode = '#3D-' + Math.floor(1000 + Math.random() * 9000);
 
         const orderPayload = {
           orderId: orderCode,
@@ -840,15 +903,15 @@ export class CrealityShop {
           if (botToken) {
             const cleanPhone = custPhone.replace(/[^0-9+]/g, '');
             const tgMsg = `
-🛍️ <b>CREALITY DO‘KONIDAN YANGI BUYURTMA!</b>
+💎 <b>CREALITY 3D MODELINI CHOP ETISHGA BUYURTMA!</b>
 
 🆔 <b>Buyurtma ID:</b> <code>${orderCode}</code>
-📦 <b>Mahsulot:</b> ${prod.name}
-💰 <b>Narxi:</b> <b>${this.formatPrice(prod.priceUZS, prod.priceUSD)}</b>
+📦 <b>Model:</b> ${prod.name}
+💰 <b>Chop etish narxi:</b> <b>${this.formatPrice(prod.priceUZS, prod.priceUSD)}</b>
 👤 <b>Mijoz:</b> ${custName}
 📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${custPhone}</a>
-${custTg ? `💬 <b>Telegram:</b> ${custTg}\n` : ''}${custAddr ? `📍 <b>Manzil:</b> ${custAddr}\n` : ''}${custNotes ? `📝 <b>Izoh:</b> <i>"${custNotes}"</i>\n` : ''}
-⚡ <i>Holat: 🟡 Yangi buyurtma — mijoz bilan bog‘laning!</i>
+${custTg ? `💬 <b>Telegram:</b> ${custTg}\n` : ''}${custAddr ? `📍 <b>Manzil:</b> ${custAddr}\n` : ''}${custNotes ? `📝 <b>Izoh / Rang:</b> <i>"${custNotes}"</i>\n` : ''}
+⚡ <i>Holat: 🟡 Yangi model buyurtmasi — dastgohni tayyorlang!</i>
             `.trim();
 
             const actionKeyboard = {
@@ -902,19 +965,19 @@ ${custTg ? `💬 <b>Telegram:</b> ${custTg}\n` : ''}${custAddr ? `📍 <b>Manzil
       });
     }
 
-    // 6. Yangi mahsulot qo'shish
+    // 6. Yangi model qo'shish
     const btnAddProd = this.mount.querySelector('#btn-add-product');
     if (btnAddProd && editModal) {
       btnAddProd.addEventListener('click', () => {
-        const newId = 'custom-' + Date.now();
+        const newId = 'custom-model-' + Date.now();
         this.mount.querySelector('#edit-prod-id').value = newId;
-        this.mount.querySelector('#edit-prod-title').textContent = 'Yangi Mahsulot Qo‘shish';
+        this.mount.querySelector('#edit-prod-title').textContent = 'Yangi 3D Model Qo‘shish';
         this.mount.querySelector('#edit-input-name').value = '';
-        this.mount.querySelector('#edit-input-uzs').value = '1000000';
-        this.mount.querySelector('#edit-input-usd').value = '80';
-        this.mount.querySelector('#edit-input-badge').value = 'Yangi';
+        this.mount.querySelector('#edit-input-uzs').value = '50000';
+        this.mount.querySelector('#edit-input-usd').value = '4';
+        this.mount.querySelector('#edit-input-badge').value = 'Yangi Model';
         this.mount.querySelector('#edit-select-stock').value = 'true';
-        this.mount.querySelector('#edit-input-stock-status').value = 'Omborda mavjud';
+        this.mount.querySelector('#edit-input-stock-status').value = 'Ustaxonada tayyor';
         editModal.style.display = 'flex';
       });
     }

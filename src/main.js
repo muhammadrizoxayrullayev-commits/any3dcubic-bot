@@ -115,9 +115,9 @@ class App {
             <span class="tab-text-short">3D Studiya</span>
           </button>
           <button type="button" class="nav-tab-btn ${this.currentView === 'shop' ? 'active-shop' : ''}" data-view="shop" id="tab-shop">
-            <span class="tab-icon">🛍️</span>
-            <span class="tab-text-full">Creality 3D Do‘koni</span>
-            <span class="tab-text-short">Do‘kon</span>
+            <span class="tab-icon">💎</span>
+            <span class="tab-text-full">Creality 3D Modellar</span>
+            <span class="tab-text-short">3D Modellar</span>
           </button>
           <button type="button" class="nav-tab-btn ${this.currentView === 'pitch' ? 'active-pitch' : ''}" data-view="pitch" id="tab-pitch">
             <span class="tab-icon">💼</span>
