@@ -10,7 +10,8 @@ import {
   getOrderById,
   updateOrderStatus,
   getOrderMessages,
-  saveOrderMessage
+  saveOrderMessage,
+  handleUpdate
 } from './telegramBot.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -146,6 +147,36 @@ const server = http.createServer(async (req, res) => {
       time: new Date().toISOString(),
       timestamp: Date.now()
     });
+  }
+
+  // 1.1 Telegram Webhook Handler (Render / Cloud uchun)
+  if ((pathname === '/webhook' || pathname === '/api/telegram-webhook') && req.method === 'POST') {
+    try {
+      const update = await readBody(req);
+      if (update && update.update_id) {
+        handleUpdate(update).catch(err => console.error('⚠️ Webhook update error:', err.message));
+      }
+      return sendJSON(res, 200, { ok: true });
+    } catch (err) {
+      return sendJSON(res, 200, { ok: false, error: err.message });
+    }
+  }
+
+  // 1.2 Webhook sozlash endpointi
+  if (pathname === '/api/set-webhook' && req.method === 'GET') {
+    const publicUrl = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL;
+    const botToken = process.env.TELEGRAM_BOT_TOKEN || '9101464035:AAGwpN8Yb-1Ey2eQZ7hvhj3Y1_jM7uHUkLI';
+    if (!publicUrl) {
+      return sendJSON(res, 400, { ok: false, error: 'PUBLIC_URL yoki RENDER_EXTERNAL_URL topilmadi' });
+    }
+    const webhookUrl = `${publicUrl.replace(/\/$/, '')}/webhook`;
+    try {
+      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+      const tgData = await tgRes.json();
+      return sendJSON(res, 200, { ok: true, webhookUrl, telegramResponse: tgData });
+    } catch (e) {
+      return sendJSON(res, 500, { ok: false, error: e.message });
+    }
   }
 
   // 2. Submit order API
@@ -331,6 +362,21 @@ server.listen(PORT, HOST, () => {
   const publicUrl = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL;
   if (publicUrl) {
     console.log(`⚡ 24/7 Keep-Alive avtomatik yoqildi: ${publicUrl}/health`);
+    
+    // Auto-register Telegram Webhook on Render / Cloud
+    const botToken = process.env.TELEGRAM_BOT_TOKEN || '9101464035:AAGwpN8Yb-1Ey2eQZ7hvhj3Y1_jM7uHUkLI';
+    const webhookUrl = `${publicUrl.replace(/\/$/, '')}/webhook`;
+    fetch(`https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          console.log(`🚀 Telegram Webhook muvaffaqiyatli Renderga ulandi: ${webhookUrl}`);
+        } else {
+          console.log(`ℹ️ Webhook javobi:`, d.description);
+        }
+      })
+      .catch(e => console.warn('Webhook avto-ulanish xatosi:', e.message));
+
     setInterval(async () => {
       try {
         const pingRes = await fetch(`${publicUrl}/health`, { signal: AbortSignal.timeout(10000) });
