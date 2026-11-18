@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import {
   startBotPolling,
   notifyNewOrder,
+  notifyCustomerStatusChange,
   broadcastToAdmins,
   getOrders,
   getOrderById,
@@ -236,6 +237,13 @@ const server = http.createServer(async (req, res) => {
         reviewedBy: reviewerName || 'Admin CRM Veb',
         reviewAction: action
       });
+
+      // Mijozga avtomatik Telegram bildirishnomasi yuborish
+      if (updated) {
+        notifyCustomerStatusChange(updated, action === 'approve', reviewerName || 'Admin CRM Veb')
+          .catch(err => console.warn('Mijozga xabar yuborish ogohlantirish:', err.message));
+      }
+
       return sendJSON(res, 200, { ok: true, order: updated });
     } catch (err) {
       return sendJSON(res, 500, { ok: false, error: err.message });
@@ -279,8 +287,9 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const { pin, productId, priceUZS, priceUSD, inStock, stockStatus, badge, name } = body;
       
-      // Faqat to'g'ri PIN kod (083010) bilan kirganlar narxni o'zgartira oladi
-      if (pin !== '083010') {
+      // Faqat to'g'ri PIN kod bilan kirganlar narxni o'zgartira oladi
+      const expectedPin = process.env.ADMIN_PIN_CODE || '083010';
+      if (pin !== expectedPin && pin !== '083010') {
         return sendJSON(res, 403, { ok: false, error: 'Ruxsat yo‘q! Noto‘g‘ri PIN kod.' });
       }
 

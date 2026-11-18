@@ -412,7 +412,7 @@ export class PitchDeck {
 
               <div class="be-slider-field">
                 <div class="label-row">
-                  <label>Ustaxona Ijarasi (Chilonzor):</label>
+                  <label>Ustaxona Ijarasi (Sergeli/Toshkent):</label>
                   <span>${this.formatPrice(this.simState.monthlyRentUZS)}</span>
                 </div>
                 <input type="range" class="custom-slider" id="slider-be-rent" min="2000000" max="4500000" step="250000" value="${this.simState.monthlyRentUZS}">

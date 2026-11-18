@@ -1,5 +1,6 @@
 import { ORDER_TYPES, MATERIALS, QUALITY_PRESETS, INFILL_PRESETS, EXCHANGE_RATE_UZS_PER_USD } from '../data/orderTypes.js';
 import confetti from 'canvas-confetti';
+import { apiUrl } from '../apiConfig.js';
 
 export class OrderConfigurator {
   constructor(mountElement, threeStudio, onOrderSubmitted) {
@@ -999,8 +1000,20 @@ export class OrderConfigurator {
     if (checkoutForm) {
       checkoutForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const custName = this.mount.querySelector('#cust-name').value || 'Mijoz';
-        const custPhone = this.mount.querySelector('#cust-phone').value || '+998';
+        const custName = (this.mount.querySelector('#cust-name')?.value || '').trim() || 'Mijoz';
+        const custPhone = (this.mount.querySelector('#cust-phone')?.value || '').trim();
+        const cleanPhoneDigits = custPhone.replace(/\D/g, '');
+        if (cleanPhoneDigits.length < 9) {
+          alert('Iltimos, telefon raqamingizni to‘liq kiriting (masalan: +998 90 123 45 67).');
+          return;
+        }
+
+        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '⏳ Buyurtma yuborilmoqda...';
+        }
+
         const pricing = this.calculatePricing();
         const currentType = this.getCurrentOrderType();
         const orderIdVal = this.mount.querySelector('#inv-order-num')?.textContent || '#T3D-UZ-8492';
@@ -1033,7 +1046,7 @@ export class OrderConfigurator {
         const sendOrderSafely = async () => {
           let backendDelivered = false;
           try {
-            const res = await fetch('/api/submit-order', {
+            const res = await fetch(apiUrl('/api/submit-order'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(orderData)
@@ -1241,7 +1254,7 @@ ${orderData.orderNotes ? `\n📝 <b>Izoh:</b> <i>"${orderData.orderNotes}"</i>\n
             return;
           }
           try {
-            const res = await fetch(`/api/order-status?id=${encodeURIComponent(orderIdVal)}`);
+            const res = await fetch(apiUrl(`/api/order-status?id=${encodeURIComponent(orderIdVal)}`));
             const data = await res.json();
             if (data.ok && data.status) {
               if (data.status === 'approved') {

@@ -34,6 +34,24 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 export const EXCLUSIVE_ADMIN_CHAT_ID = Number(process.env.EXCLUSIVE_ADMIN_CHAT_ID) || 8929216064;
 export const EXCLUSIVE_ADMIN_USERNAME = (process.env.EXCLUSIVE_ADMIN_USERNAME || 'any3DCubicc').replace('@', '');
+export const ADMIN_PIN_CODE = process.env.ADMIN_PIN_CODE || '083010';
+
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function getCustomerTelegramUrl(customerTelegram, customerPhone) {
+  if (customerTelegram) {
+    const clean = customerTelegram.replace(/[@\s]/g, '');
+    if (clean) return `https://t.me/${clean}`;
+  }
+  return `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'Any3dCubic_bot'}`;
+}
+
 const DATA_DIR = path.join(projectRoot, 'data');
 const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
@@ -84,14 +102,14 @@ export function saveOrderMessage(orderId, msg) {
     // Agar xabar mijozdan bo'lsa, barcha adminlarga Telegramdan bildirishnoma yuborish
     if (msg.sender === 'customer') {
       const order = getOrderById(orderId);
-      const custName = order?.customerName || msg.senderName || 'Mijoz';
+      const custName = escapeHtml(order?.customerName || msg.senderName || 'Mijoz');
       const custPhone = (order?.customerPhone || '').replace(/[^0-9+]/g, '');
       const tgAlert = `
 💬 <b>MIJOZDAN JONLI CHAT XABARI!</b>
 
-🆔 <b>Buyurtma:</b> <code>${orderId}</code>
-👤 <b>Mijoz:</b> ${custName} (${order?.customerPhone || 'Tel yo‘q'})
-✉️ <b>Xabar matni:</b> "${msg.text}"
+🆔 <b>Buyurtma:</b> <code>${escapeHtml(orderId)}</code>
+👤 <b>Mijoz:</b> ${custName} (${escapeHtml(order?.customerPhone || 'Tel yo‘q')})
+✉️ <b>Xabar matni:</b> "${escapeHtml(msg.text)}"
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
 
 ⚡ <i>Veb-saytdagi Admin CRM orqali yoki quyidagi tugmalar bilan darhol javob berishingiz mumkin:</i>
@@ -101,7 +119,7 @@ export function saveOrderMessage(orderId, msg) {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '💬 Telegramdan yozish', url: `https://t.me/+${custPhone.replace('+', '')}` }
+              { text: '💬 Mijoz Telegrami', url: getCustomerTelegramUrl(order?.customerTelegram, custPhone) }
             ]
           ]
         }
@@ -241,17 +259,20 @@ function saveOrder(order) {
 }
 
 export async function sendTelegramMessage(chatId, text, extra = {}) {
-  if (!BOT_TOKEN) {
-    console.error('TELEGRAM_BOT_TOKEN topilmadi!');
+  if (!BOT_TOKEN || !chatId || !text) {
     return false;
   }
   try {
+    let safeText = String(text);
+    if (safeText.length > 4000) {
+      safeText = safeText.slice(0, 3990) + '\n... (qisqartirildi)';
+    }
     const res = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text,
+        text: safeText,
         parse_mode: 'HTML',
         ...extra
       })
@@ -265,7 +286,7 @@ export async function sendTelegramMessage(chatId, text, extra = {}) {
 }
 
 export async function sendTelegramLocation(chatId, latitude, longitude, extra = {}) {
-  if (!BOT_TOKEN) return false;
+  if (!BOT_TOKEN || !chatId) return false;
   try {
     const res = await fetch(`${TELEGRAM_API_URL}/sendLocation`, {
       method: 'POST',
@@ -286,11 +307,15 @@ export async function sendTelegramLocation(chatId, latitude, longitude, extra = 
 }
 
 export async function sendTelegramPhoto(chatId, photoSource, caption, extra = {}) {
-  if (!BOT_TOKEN || !photoSource) return false;
+  if (!BOT_TOKEN || !photoSource || !chatId) return false;
   try {
+    let safeCaption = caption ? String(caption) : '';
+    if (safeCaption.length > 1000) {
+      safeCaption = safeCaption.slice(0, 990) + '...';
+    }
     const formData = new FormData();
     formData.append('chat_id', chatId);
-    formData.append('caption', caption || '');
+    formData.append('caption', safeCaption);
     formData.append('parse_mode', 'HTML');
     if (extra.reply_markup) {
       formData.append('reply_markup', JSON.stringify(extra.reply_markup));
@@ -355,22 +380,22 @@ export async function sendOrderDetailsToUser(chatId, order, isExclusiveAdmin, ke
   }
 
   const orderCardText = `
-📦 <b>BUYURTMA MA'LUMOTLARI: ${order.orderId}</b>
+📦 <b>BUYURTMA MA'LUMOTLARI: ${escapeHtml(order.orderId)}</b>
 
-🆔 <b>Buyurtma ID:</b> <code>${order.orderId}</code>
-👤 <b>Mijoz:</b> ${order.customerName || 'Noma\'lum'}
-📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${order.customerPhone || 'Kiritilmagan'}</a>
-💬 <b>Telegram nick:</b> ${tgNick !== 'Kiritilmagan' ? `<a href="https://t.me/${tgNick.replace('@', '')}">${tgNick}</a>` : '<i>Kiritilmagan</i>'}
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(order.orderId)}</code>
+👤 <b>Mijoz:</b> ${escapeHtml(order.customerName || 'Noma\'lum')}
+📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${escapeHtml(order.customerPhone || 'Kiritilmagan')}</a>
+💬 <b>Telegram nick:</b> ${tgNick !== 'Kiritilmagan' ? `<a href="https://t.me/${tgNick.replace('@', '')}">${escapeHtml(tgNick)}</a>` : '<i>Kiritilmagan</i>'}
 
-📋 <b>Mahsulot / Detal:</b> ${order.orderTypeTitle || '3D Detal'}
-🧵 <b>Material:</b> ${order.material || 'Standart PLA'}
+📋 <b>Mahsulot / Detal:</b> ${escapeHtml(order.orderTypeTitle || '3D Detal')}
+🧵 <b>Material:</b> ${escapeHtml(order.material || 'Standart PLA')}
 🔢 <b>Soni:</b> ${order.quantity || 1} dona
-💰 <b>Jami summa:</b> <b>${order.grandTotal || '0 so‘m'}</b>
-🚚 <b>Yetkazish:</b> ${order.deliveryMethodTitle || order.deliveryMethod || 'Ustaxonadan olib ketish'}
-${order.deliveryAddress ? `📍 <b>Manzil:</b> ${order.deliveryAddress}\n` : ''}${order.orderNotes ? `📝 <b>Izoh:</b> <i>"${order.orderNotes}"</i>\n` : ''}
+💰 <b>Jami summa:</b> <b>${escapeHtml(order.grandTotal || '0 so‘m')}</b>
+🚚 <b>Yetkazish:</b> ${escapeHtml(order.deliveryMethodTitle || order.deliveryMethod || 'Ustaxonadan olib ketish')}
+${order.deliveryAddress ? `📍 <b>Manzil:</b> ${escapeHtml(order.deliveryAddress)}\n` : ''}${order.orderNotes ? `📝 <b>Izoh:</b> <i>"${escapeHtml(order.orderNotes)}"</i>\n` : ''}
 ⏱️ <b>Holat:</b> ${statusBadge}
 📅 <b>Vaqt:</b> ${order.createdAt ? new Date(order.createdAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' }) : 'Bugun'}
-${order.reviewedBy ? `👨‍💼 <b>Tekshiruvchi:</b> ${order.reviewedBy}\n` : ''}
+${order.reviewedBy ? `👨‍💼 <b>Tekshiruvchi:</b> ${escapeHtml(order.reviewedBy)}\n` : ''}
 ${(order.receiptImage || order.receiptPath) ? '🧾 <b>To‘lov cheki:</b> Rasm quyida ilova qilindi 👇' : '⚠️ <b>To‘lov cheki:</b> Chek yuklanmagan (kuryerga / joyida to‘lov)'}
   `.trim();
 
@@ -384,7 +409,7 @@ ${(order.receiptImage || order.receiptPath) ? '🧾 <b>To‘lov cheki:</b> Rasm 
           { text: '❌ Rad etish (Decline)', callback_data: `decline_${order.orderId}` }
         ],
         [
-          { text: '💬 Mijoz Telegrami', url: order.customerTelegram ? `https://t.me/${order.customerTelegram.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: getCustomerTelegramUrl(order.customerTelegram, cleanPhone) }
         ]
       ]
     };
@@ -440,16 +465,16 @@ export async function notifyNewOrder(orderData) {
   const message = `
 🚨 <b>YANGI 3D BOSMA BUYURTMASI!</b> ${hasReceipt ? '🧾 (To‘lov cheki yuklandi)' : ''}
 
-🆔 <b>Buyurtma ID:</b> <code>${orderId}</code>
-👤 <b>Mijoz:</b> ${orderData.customerName || 'Noma\'lum mijoz'}
-📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${orderData.customerPhone || 'Kiritilmagan'}</a>
-${orderData.customerTelegram ? `💬 <b>Telegram:</b> ${orderData.customerTelegram}\n` : ''}${orderData.deliveryAddress ? `📍 <b>Manzil:</b> ${orderData.deliveryAddress}\n` : ''}
-📋 <b>Turi:</b> ${orderData.orderTypeTitle || 'Maxsus detal'}
-🧵 <b>Material:</b> ${orderData.material || 'Standart PLA'}
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(orderId)}</code>
+👤 <b>Mijoz:</b> ${escapeHtml(orderData.customerName || 'Noma\'lum mijoz')}
+📞 <b>Telefon:</b> <a href="tel:${cleanPhone}">${escapeHtml(orderData.customerPhone || 'Kiritilmagan')}</a>
+${orderData.customerTelegram ? `💬 <b>Telegram:</b> ${escapeHtml(orderData.customerTelegram)}\n` : ''}${orderData.deliveryAddress ? `📍 <b>Manzil:</b> ${escapeHtml(orderData.deliveryAddress)}\n` : ''}
+📋 <b>Turi:</b> ${escapeHtml(orderData.orderTypeTitle || 'Maxsus detal')}
+🧵 <b>Material:</b> ${escapeHtml(orderData.material || 'Standart PLA')}
 🔢 <b>Soni:</b> ${orderData.quantity || 1} dona
-💰 <b>Summa:</b> <b>${orderData.grandTotal || 'Kelishiladi'}</b>
-🚚 <b>Yetkazish:</b> <b>${orderData.deliveryMethodTitle || 'Ustaxonadan olib ketish'}</b>
-⏱️ <b>Muddati:</b> ${orderData.turnaround || 'Standart (24-48 soat)'}
+💰 <b>Summa:</b> <b>${escapeHtml(orderData.grandTotal || 'Kelishiladi')}</b>
+🚚 <b>Yetkazish:</b> <b>${escapeHtml(orderData.deliveryMethodTitle || 'Ustaxonadan olib ketish')}</b>
+⏱️ <b>Muddati:</b> ${escapeHtml(orderData.turnaround || 'Standart (24-48 soat)')}
 ${hasReceipt ? '🧾 <b>To‘lov Cheki:</b> Rasm biriktirildi (tekshiring)\n' : '⚠️ <b>To‘lov:</b> Chek yuklanmagan (kuryerga / joyida)\n'}🟡 <b>Holat:</b> <i>Administrator tekshiruvi kutilmoqda...</i>
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
 
@@ -464,7 +489,7 @@ ${hasReceipt ? '🧾 <b>To‘lov Cheki:</b> Rasm biriktirildi (tekshiring)\n' : 
           { text: '❌ Rad etish (Fake / Decline)', callback_data: `decline_${orderId}` }
         ],
         [
-          { text: '💬 Mijoz Telegrami', url: orderData.customerTelegram ? `https://t.me/${orderData.customerTelegram.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: getCustomerTelegramUrl(orderData.customerTelegram, cleanPhone) }
         ]
       ]
     }
@@ -521,6 +546,42 @@ export function startBotPolling() {
   poll();
 }
 
+export async function notifyCustomerStatusChange(order, isApprove, reviewerName) {
+  const custChatId = order?.customerChatId;
+  const orderId = order?.orderId || '#T3D';
+  if (!custChatId) return false;
+
+  try {
+    if (isApprove) {
+      const custMsg = `
+🎉 <b>Xushxabar! Buyurtmangiz qabul qilindi va tasdiqlandi!</b>
+
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(orderId)}</code>
+To‘lov chekingiz administratorimiz (${escapeHtml(reviewerName || '@any3DCubicc')}) tomonidan tekshirildi va tasdiqlandi!
+
+🖨️ <b>Any3D ustaxonamizda detalni 3D chop etish navbatiga qo‘yildi!</b>
+📡 <b>Buyurtmangizni botda LIVE (jonli) ko‘ra olasiz!</b>
+Dastgoh harorati va tayyor bo‘lish vaqtini ko‘rish uchun /live buyrug‘ini bosing.
+      `.trim();
+      return await sendTelegramMessage(custChatId, custMsg);
+    } else {
+      const custMsg = `
+❌ <b>Buyurtmangiz rad etildi (To‘lov tasdiqlanmadi)</b>
+
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(orderId)}</code>
+Hurmatli mijoz, siz yuklagan to‘lov cheki administratorimiz tomonidan rad etildi (to‘lov hisobimizga tushmadi yoki chek yaroqsiz deb topildi).
+
+Iltimos, qayta to‘lov qilib to‘g‘ri chekni yuklang yoki ustaxona ma'muri bilan bog‘laning:
+📞 Admin: @any3DCubicc
+      `.trim();
+      return await sendTelegramMessage(custChatId, custMsg);
+    }
+  } catch (err) {
+    console.error('Mijozga xabar yuborishda xatolik:', err.message);
+    return false;
+  }
+}
+
 async function handleCallbackQuery(cq) {
   const data = cq.data || '';
   const adminName = cq.from.first_name || cq.from.username || 'Administrator';
@@ -541,7 +602,11 @@ async function handleCallbackQuery(cq) {
     await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callback_query_id: cq.id })
+      body: JSON.stringify({
+        callback_query_id: cq.id,
+        text: '📡 Dastgoh harorati: 215°C / 60°C. Bosish tezligi: 250 mm/s. Tayyor bo‘lish vaqti: bugun 18:30 gacha.',
+        show_alert: true
+      })
     }).catch(() => {});
     return;
   }
@@ -592,22 +657,22 @@ async function handleCallbackQuery(cq) {
       updatedCaption = `
 ✅ <b>BUYURTMA VA TO‘LOV CHEKI TASDIQLANDI!</b>
 
-🆔 <b>Buyurtma ID:</b> <code>${orderId}</code>
-👤 <b>Mijoz:</b> ${updatedOrder?.customerName || 'Mijoz'} (${updatedOrder?.customerPhone || ''})
-💰 <b>Summa:</b> <b>${updatedOrder?.grandTotal || ''}</b>
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(orderId)}</code>
+👤 <b>Mijoz:</b> ${escapeHtml(updatedOrder?.customerName || 'Mijoz')} (${escapeHtml(updatedOrder?.customerPhone || '')})
+💰 <b>Summa:</b> <b>${escapeHtml(updatedOrder?.grandTotal || '')}</b>
 🟢 <b>Holat:</b> To‘lov tushganligi tasdiqlandi. 3D dastgohda chop etish boshlandi!
-👨‍💼 <b>Tasdiqlagan admin:</b> ${adminName}
+👨‍💼 <b>Tasdiqlagan admin:</b> ${escapeHtml(adminName)}
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
       `.trim();
     } else {
       updatedCaption = `
 ❌ <b>BUYURTMA VA TO‘LOV CHEKI RAD ETILDI (DECLINED)!</b>
 
-🆔 <b>Buyurtma ID:</b> <code>${orderId}</code>
-👤 <b>Mijoz:</b> ${updatedOrder?.customerName || 'Mijoz'} (${updatedOrder?.customerPhone || ''})
-💰 <b>Summa:</b> <b>${updatedOrder?.grandTotal || ''}</b>
+🆔 <b>Buyurtma ID:</b> <code>${escapeHtml(orderId)}</code>
+👤 <b>Mijoz:</b> ${escapeHtml(updatedOrder?.customerName || 'Mijoz')} (${escapeHtml(updatedOrder?.customerPhone || '')})
+💰 <b>Summa:</b> <b>${escapeHtml(updatedOrder?.grandTotal || '')}</b>
 🚫 <b>Sabab:</b> To‘lov cheki soxta (fake) yoki mablag‘ tushmagan deb topildi!
-👨‍💼 <b>Rad etgan admin:</b> ${adminName}
+👨‍💼 <b>Rad etgan admin:</b> ${escapeHtml(adminName)}
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
       `.trim();
     }
@@ -615,7 +680,7 @@ async function handleCallbackQuery(cq) {
     const followUpKeyboard = {
       inline_keyboard: [
         [
-          { text: '💬 Mijoz Telegrami', url: `https://t.me/+${cleanPhone.replace('+', '')}` }
+          { text: '💬 Mijoz Telegrami', url: getCustomerTelegramUrl(updatedOrder?.customerTelegram, cleanPhone) }
         ]
       ]
     };
@@ -646,35 +711,19 @@ async function handleCallbackQuery(cq) {
       }).catch(() => {});
     }
 
-    // 3. Agar mijozning Telegram chat ID si bo'lsa, mijozga xabar berish
-    const custChatId = updatedOrder?.customerChatId;
-    if (custChatId) {
-      if (isApprove) {
-        const custMsg = `
-🎉 <b>Xushxabar! Buyurtmangiz qabul qilindi va tasdiqlandi!</b>
-
-🆔 <b>Buyurtma ID:</b> <code>${orderId}</code>
-To‘lov chekingiz administratorlarimiz tomonidan tekshirildi va to‘liq tasdiqlandi!
-
-🖨️ <b>Any3D ustaxonamizda detalni 3D chop etish jarayoni boshlandi!</b>
-📡 <b>Buyurtmangizni botda LIVE (jonli) ko‘ra olasiz!</b>
-Dastgoh harorati va tayyor bo‘lish vaqtini ko‘rish uchun /live buyrug‘ini bosing.
-        `.trim();
-        await sendTelegramMessage(custChatId, custMsg);
-      } else {
-        const custMsg = `
-❌ <b>Buyurtmangiz rad etildi (To‘lov tasdiqlanmadi)</b>
-
-🆔 <b>Buyurtma ID:</b> <code>${orderId}</code>
-Hurmatli mijoz, siz yuklagan to‘lov cheki administratorlarimiz tomonidan rad etildi (to‘lov bank hisobimizga kelib tushmadi yoki chek yaroqsiz deb topildi).
-
-Iltimos, qayta to‘lov qilib to‘g‘ri chekni yuklang yoki ustaxona ma'muri bilan bog‘laning:
-📞 Admin: @any3DCubicc
-        `.trim();
-        await sendTelegramMessage(custChatId, custMsg);
-      }
+    // 3. Mijozga Telegram orqali xabar yetkazish
+    if (updatedOrder) {
+      await notifyCustomerStatusChange(updatedOrder, isApprove, adminName);
     }
+    return;
   }
+
+  // Har doim kutilmagan callbackQuery larga javob qaytarish (spinner qotib qolmasligi uchun)
+  await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: cq.id })
+  }).catch(() => {});
 }
 
 export async function handleUpdate(update) {
@@ -754,11 +803,33 @@ export async function handleUpdate(update) {
   // 1. Agar foydalanuvchi to'lov cheki rasmini yuklasa
   if (msg.photo && msg.photo.length > 0) {
     const photoId = msg.photo[msg.photo.length - 1].file_id;
-    const captionNote = msg.caption ? `\n💬 <b>Izoh:</b> ${msg.caption}` : '';
+    const captionNote = msg.caption ? `\n💬 <b>Izoh:</b> ${escapeHtml(msg.caption)}` : '';
+    const newOrderId = '#CHK-' + Math.floor(1000 + Math.random() * 9000);
+
+    const receiptOrder = {
+      orderId: newOrderId,
+      customerName: userName,
+      customerChatId: chatId,
+      customerTelegram: msg.from.username ? `@${msg.from.username}` : '',
+      customerPhone: '',
+      deliveryAddress: 'Aniqlanmoqda',
+      orderTypeTitle: '🧾 To‘lov cheki / 3D model buyurtmasi',
+      material: 'Standart PLA/PETG',
+      quantity: 1,
+      grandTotal: 'Chek tekshirilmoqda',
+      deliveryMethodTitle: 'Yetkazib berish / Ustaxonadan olib ketish',
+      orderNotes: msg.caption || 'Telegram orqali to‘lov cheki yuborildi',
+      photoFileId: photoId,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    saveOrder(receiptOrder);
+
     const adminNotice = `
 🧾 <b>MIJOZDAN TO‘LOV CHEKI KELDI!</b>
 
-👤 <b>Mijoz:</b> ${userName}
+🆔 <b>Buyurtma ID:</b> <code>${newOrderId}</code>
+👤 <b>Mijoz:</b> ${escapeHtml(userName)} (${msg.from.username ? '@' + escapeHtml(msg.from.username) : 'Chat ID: ' + chatId})
 🆔 <b>Chat ID:</b> <code>${chatId}</code>${captionNote}
 📅 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
 
@@ -777,8 +848,11 @@ export async function handleUpdate(update) {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '✅ Tasdiqlash (Qabul qilish)', callback_data: `approve_PHOTO_${Date.now()}` },
-              { text: '❌ Rad etish (Fake)', callback_data: `decline_PHOTO_${Date.now()}` }
+              { text: '✅ Tasdiqlash (Qabul qilish)', callback_data: `approve_${newOrderId}` },
+              { text: '❌ Rad etish (Fake)', callback_data: `decline_${newOrderId}` }
+            ],
+            [
+              { text: '💬 Mijoz Telegrami', url: getCustomerTelegramUrl(msg.from.username, '') }
             ]
           ]
         }
@@ -788,8 +862,9 @@ export async function handleUpdate(update) {
     const userSuccess = `
 🎉 <b>To‘lov chekingiz qabul qilindi!</b>
 
+🆔 <b>Buyurtma raqamingiz:</b> <code>${newOrderId}</code>
 📸 Chek rasmi Toshkent 3D Ustaxonasi bosh administratori (@any3DCubicc) ga tekshirish uchun yetkazildi.
-Admin chekni tasdiqlagan zahoti buyurtmangiz navbatga qo‘yiladi!
+Admin chekni tasdiqlagan zahoti sizga bu yerda avtomatik xabar keladi va buyurtmangiz navbatga qo‘yiladi!
     `.trim();
 
     await sendTelegramMessage(chatId, userSuccess, { reply_markup: activeKeyboard });

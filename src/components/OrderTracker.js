@@ -1,3 +1,5 @@
+import { apiUrl } from '../apiConfig.js';
+
 export class OrderTracker {
   constructor(mountElement, initialOrder = null, onBackToConfigurator) {
     this.mount = typeof mountElement === 'string' ? document.querySelector(mountElement) : mountElement;
@@ -49,7 +51,7 @@ export class OrderTracker {
     if (!orderId) return;
 
     try {
-      const res = await fetch(`/api/chat-messages?orderId=${encodeURIComponent(orderId)}`);
+      const res = await fetch(apiUrl(`/api/chat-messages?orderId=${encodeURIComponent(orderId)}`));
       const data = await res.json();
       if (data.ok && Array.isArray(data.messages)) {
         this.chatMessages = data.messages;
@@ -315,10 +317,12 @@ export class OrderTracker {
     if (btnLookup && inputId) {
       btnLookup.addEventListener('click', async () => {
         const id = inputId.value.trim();
-        if (id) {
-          btnLookup.textContent = 'Tekshirilmoqda...';
+        if (id && !btnLookup.disabled) {
+          btnLookup.disabled = true;
+          const origText = btnLookup.textContent;
+          btnLookup.textContent = '⏳ Tekshirilmoqda...';
           try {
-            const res = await fetch(`/api/order-status?id=${encodeURIComponent(id)}`);
+            const res = await fetch(apiUrl(`/api/order-status?id=${encodeURIComponent(id)}`));
             const data = await res.json();
             if (data.ok && data.order) {
               this.currentOrder = data.order;
@@ -339,6 +343,9 @@ export class OrderTracker {
             }
           } catch (e) {
             this.currentOrder.orderId = id.startsWith('#') ? id : `#T3D-UZ-${id}`;
+          } finally {
+            btnLookup.disabled = false;
+            btnLookup.textContent = origText;
           }
           this.render();
           this.fetchMessages();
@@ -352,7 +359,8 @@ export class OrderTracker {
 
     const doSend = async () => {
       const text = chatInput?.value?.trim();
-      if (!text) return;
+      if (!text || (sendBtn && sendBtn.disabled)) return;
+      if (sendBtn) sendBtn.disabled = true;
       chatInput.value = '';
 
       const newMsg = {
@@ -363,7 +371,7 @@ export class OrderTracker {
       };
 
       try {
-        const res = await fetch('/api/send-message', {
+        const res = await fetch(apiUrl('/api/send-message'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newMsg)
@@ -378,25 +386,18 @@ export class OrderTracker {
           const directMsg = `
 💬 <b>MIJOZDAN JONLI CHAT XABARI (Zaxira Kanal)!</b>
 
-🆔 <b>Buyurtma ID:</b> <code>${this.currentOrder.orderId}</code>
-👤 <b>Mijoz:</b> ${this.currentOrder.customerName || 'Mijoz'} (${this.currentOrder.customerPhone || 'Tel yo‘q'})
+🆔 <b>Buyurtma:</b> <code>${this.currentOrder.orderId}</code>
+👤 <b>Mijoz:</b> ${this.currentOrder.customerName || 'Mijoz'}
 ✉️ <b>Xabar:</b> "${text}"
-📅 <b>Vaqt:</b> ${new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
           `.trim();
-
           for (const aid of adminIds) {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: aid,
-                text: directMsg,
-                parse_mode: 'HTML'
-              })
+              body: JSON.stringify({ chat_id: aid, text: directMsg, parse_mode: 'HTML' })
             }).catch(() => {});
           }
         }
-
         // Local saving
         this.chatMessages.push({
           ...newMsg,
@@ -405,6 +406,8 @@ export class OrderTracker {
         });
         localStorage.setItem(`chat_${this.currentOrder.orderId}`, JSON.stringify(this.chatMessages));
         this.updateChatUI();
+      } finally {
+        if (sendBtn) sendBtn.disabled = false;
       }
     };
 

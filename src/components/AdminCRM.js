@@ -1,3 +1,5 @@
+import { apiUrl } from '../apiConfig.js';
+
 export class AdminCRM {
   constructor(mountElement, options = {}) {
     this.mount = typeof mountElement === 'string' ? document.querySelector(mountElement) : mountElement;
@@ -31,7 +33,7 @@ export class AdminCRM {
 
   async fetchOrders(silent = false) {
     try {
-      const res = await fetch('/api/admin-orders');
+      const res = await fetch(apiUrl('/api/admin-orders'));
       const data = await res.json();
       if (data.ok && Array.isArray(data.orders)) {
         this.orders = data.orders;
@@ -390,14 +392,22 @@ export class AdminCRM {
     const approveBtns = this.mount.querySelectorAll('[data-approve-id]');
     approveBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        const originalText = btn.textContent;
         const orderId = btn.getAttribute('data-approve-id');
-        btn.textContent = 'Tasdiqlanmoqda...';
-        await fetch('/api/review-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId, action: 'approve' })
-        }).catch(() => {});
-        await this.fetchOrders();
+        btn.textContent = '⏳ Tasdiqlanmoqda...';
+        try {
+          await fetch(apiUrl('/api/review-order'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, action: 'approve' })
+          });
+        } catch (e) {
+          console.warn('Review order error:', e.message);
+        } finally {
+          await this.fetchOrders();
+        }
       });
     });
 
@@ -405,14 +415,22 @@ export class AdminCRM {
     const declineBtns = this.mount.querySelectorAll('[data-decline-id]');
     declineBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        const originalText = btn.textContent;
         const orderId = btn.getAttribute('data-decline-id');
-        btn.textContent = 'Rad etilmoqda...';
-        await fetch('/api/review-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId, action: 'decline' })
-        }).catch(() => {});
-        await this.fetchOrders();
+        btn.textContent = '⏳ Rad etilmoqda...';
+        try {
+          await fetch(apiUrl('/api/review-order'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, action: 'decline' })
+          });
+        } catch (e) {
+          console.warn('Decline order error:', e.message);
+        } finally {
+          await this.fetchOrders();
+        }
       });
     });
 
@@ -447,7 +465,7 @@ export class AdminCRM {
 
   async fetchChatMessages(orderId, silent = false) {
     try {
-      const res = await fetch(`/api/chat-messages?orderId=${encodeURIComponent(orderId)}`);
+      const res = await fetch(apiUrl(`/api/chat-messages?orderId=${encodeURIComponent(orderId)}`));
       const data = await res.json();
       if (data.ok && Array.isArray(data.messages)) {
         this.chatMessages = data.messages;
@@ -485,10 +503,12 @@ export class AdminCRM {
     const sendAction = async () => {
       const text = inputField.value.trim();
       if (!text || !this.activeChatOrder) return;
+      if (btnSend && btnSend.disabled) return;
+      if (btnSend) btnSend.disabled = true;
       inputField.value = '';
 
       try {
-        await fetch('/api/send-message', {
+        await fetch(apiUrl('/api/send-message'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -499,7 +519,11 @@ export class AdminCRM {
           })
         });
         await this.fetchChatMessages(this.activeChatOrder.orderId);
-      } catch (err) {}
+      } catch (err) {
+        console.warn('Send admin message error:', err.message);
+      } finally {
+        if (btnSend) btnSend.disabled = false;
+      }
     };
 
     if (btnSend) btnSend.addEventListener('click', sendAction);

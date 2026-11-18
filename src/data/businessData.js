@@ -5,7 +5,7 @@ export const BUSINESS_DATA = {
     startupName: 'Toshkent 3D Bosma va Prototip Ustaxonasi',
     uzName: 'Toshkent 3D Ustaxonasi',
     mission: 'Raqamli 3D modellarni Toshkentdagi mahalliy ustaxonalar, muhandislar va talabalar uchun qimmat qoliplarsiz tayyor mahsulotga aylantirish.',
-    locationDistrict: 'Chilonzor tumani, Toshkent shahri',
+    locationDistrict: 'Sergeli tumani, Yuqori Darxon mahallasi (41.235141, 69.207236), Toshkent',
     coreAdvantage: 'Nostandart va topilmaydigan plastmassa qismlarni 24-48 soat ichida qolip xarajatisiz ishlab chiqarish.'
   },
 
@@ -79,23 +79,23 @@ export const BUSINESS_DATA = {
   // 3. Joylashuv Strategiyasi va Tumanlar Tahlili
   locations: [
     {
-      id: 'chilonzor',
-      name: 'Chilonzor tumani',
-      uzName: 'Chilonzor tumani (Tavsiya etiladi)',
+      id: 'sergeli',
+      name: 'Sergeli tumani, Yuqori Darxon',
+      uzName: 'Sergeli tumani (Asosiy Ustaxona: 41.235141, 69.207236)',
       isRecommended: true,
-      tag: 'Tavsiya Etiladigan Asosiy Markaz',
+      tag: 'Asosiy Ishlab Chiqarish Ustaxonasi',
       targetRentUZS: '2,500,000 – 3,500,000 so‘m / oy',
       spaceSize: '25 – 35 m²',
       pros: [
-        'Chilonzorda 3DShef rasmiy shourumi joylashgan: material va ehtiyot qismlarni zudlik bilan, yetkazib berish kunini kutmasdan olish mumkin',
+        'Yuqori Darxon mahallasi, Navro‘z 6-tor ko‘chasi, 3-uy (Lokatsiya: 41.235141, 69.207236)',
         'Toshkent bo‘ylab Yandex Go va BTS orqali buyurtmalarni tezkor yetkazib berish uchun qulay logistika tuguni',
-        'Avtoservislar, maishiy texnika va elektronika ustaxonalarining yuqori zichligi',
-        'Shahar markazidagi savdo nuqtalariga nisbatan arzon va maqbul ijara'
+        'Sokin muhit, 3D printerlar va dastgohlar uchun to‘liq moslashtirilgan elektr quvvati',
+        'Mijozlar ustaxonadan bepul olib ketishlari uchun qulay marshrut'
       ],
       cons: [
-        'Shartnoma imzolashdan oldin binoning elektr simlari quvvatini tekshirish lozim'
+        'Mijozlar kelishidan oldin lokatsiyani xaritadan ochib olishlari tavsiya etiladi'
       ],
-      verdict: 'Yetkazib beruvchi yaqinligi, past doimiy xarajat va tezkor logistikaning eng maqbul balansi.'
+      verdict: 'Barqaror ishlab chiqarish, qulay logistika va mustaqil ish joyining eng maqbul balansi.'
     },
     {
       id: 'mirzo-ulugbek',
@@ -215,7 +215,7 @@ export const BUSINESS_DATA = {
       note: 'Bojxona to‘lovi, pochta kechikishi, bir oy texnika ishlamay yotadi.'
     },
     tashkent3dSolution: {
-      step1: 'Mijoz singan shesternani Chilonzor ustaxonamizga olib keldi (yoki shtangensirkul o‘lchamlarini yubordi).',
+      step1: 'Mijoz singan shesternani ustaxonamizga (Sergeli tumani, Yuqori Darxon) olib keldi (yoki shtangensirkul o‘lchamlarini yubordi).',
       step2: 'Muhandisimiz SolidWorks dasturida 45 daqiqada tish qadami va diametrini aniq chizib chiqdi.',
       step3: 'Bambu Lab A1 printerida mustahkam oq PETG polimerida 1 soat 45 daqiqada chop etildi.',
       costUSD: 6,

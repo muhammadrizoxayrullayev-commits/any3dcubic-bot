@@ -17,5 +17,7 @@ services:
         value: "8929216064"
       - key: EXCLUSIVE_ADMIN_USERNAME
         value: any3DCubicc
+      - key: ADMIN_PIN_CODE
+        value: "083010"
       - key: WEB_APP_URL
         value: https://muhammadrizoxayrullayev-commits.github.io/t3d/

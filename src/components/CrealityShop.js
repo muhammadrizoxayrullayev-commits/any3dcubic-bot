@@ -1,4 +1,5 @@
 import confetti from 'canvas-confetti';
+import { apiUrl } from '../apiConfig.js';
 
 export class CrealityShop {
   constructor(mountElement, options = {}) {
@@ -54,7 +55,7 @@ export class CrealityShop {
 
   async fetchProducts() {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch(apiUrl('/api/products'));
       if (res.ok) {
         const data = await res.json();
         if (data.ok && Array.isArray(data.products) && data.products.length > 0) {
@@ -796,12 +797,13 @@ export class CrealityShop {
         }
 
         // Serverga saqlash
+        const adminPin = (import.meta.env && import.meta.env.VITE_ADMIN_PIN_CODE) || '083010';
         try {
-          await fetch('/api/update-product', {
+          await fetch(apiUrl('/api/update-product'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              pin: '083010',
+              pin: adminPin,
               productId: prodId,
               name: newName,
               priceUZS: newUzs,
@@ -860,12 +862,26 @@ export class CrealityShop {
     });
 
     if (orderForm) {
-      orderForm.addEventListener('submit', async () => {
+      orderForm.addEventListener('submit', async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
         const prod = this.activeProductForOrder;
         if (!prod) return;
 
-        const custName = this.mount.querySelector('#shop-cust-name').value || 'Mijoz';
-        const custPhone = this.mount.querySelector('#shop-cust-phone').value || '';
+        const custName = (this.mount.querySelector('#shop-cust-name')?.value || '').trim() || 'Mijoz';
+        const custPhone = (this.mount.querySelector('#shop-cust-phone')?.value || '').trim();
+        const cleanDigits = custPhone.replace(/\D/g, '');
+        if (cleanDigits.length < 9) {
+          alert('Iltimos, telefon raqamingizni to‘liq kiriting (masalan: +998 90 123 45 67).');
+          return;
+        }
+
+        const submitBtn = orderForm.querySelector('button[type="submit"]');
+        if (submitBtn && submitBtn.disabled) return;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '⏳ Buyurtma qabul qilinmoqda...';
+        }
+
         const custTg = this.mount.querySelector('#shop-cust-tg')?.value || '';
         const custAddr = this.mount.querySelector('#shop-cust-addr')?.value || '';
         const custNotes = this.mount.querySelector('#shop-cust-notes')?.value || '';
@@ -888,13 +904,15 @@ export class CrealityShop {
         // 1. Serverga yuborish
         let sentOk = false;
         try {
-          const res = await fetch('/api/shop-order', {
+          const res = await fetch(apiUrl('/api/shop-order'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderPayload)
           });
           if (res.ok) sentOk = true;
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Shop-order API error:', e.message);
+        }
 
         // 2. Agar server bo'lmasa to'g'ridan-to'g'ri Telegram Bot API orqali @any3DCubicc ga yuborish
         if (!sentOk) {
@@ -914,10 +932,11 @@ ${custTg ? `💬 <b>Telegram:</b> ${custTg}\n` : ''}${custAddr ? `📍 <b>Manzil
 ⚡ <i>Holat: 🟡 Yangi model buyurtmasi — dastgohni tayyorlang!</i>
             `.trim();
 
+            const tgUrl = custTg ? `https://t.me/${custTg.replace(/[@\s]/g, '')}` : (cleanPhone ? `https://t.me/+${cleanPhone.replace('+', '')}` : 'https://t.me/Any3dCubic_bot');
             const actionKeyboard = {
               inline_keyboard: [
                 [
-                  { text: '💬 Mijoz Telegrami', url: custTg ? `https://t.me/${custTg.replace('@', '')}` : `https://t.me/+${cleanPhone.replace('+', '')}` }
+                  { text: '💬 Mijoz Telegrami', url: tgUrl }
                 ]
               ]
             };
